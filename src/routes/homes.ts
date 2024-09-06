@@ -13,7 +13,7 @@ router.post('/', authenticateToken, async (req: any, res) => {
     console.log('User ID from token:', req.user.userId);
     const { name } = req.body;
     const userId = req.user.userId;
-
+    
     const home = await prisma.home.create({
       data: {
         name,
@@ -25,8 +25,15 @@ router.post('/', authenticateToken, async (req: any, res) => {
         users: true
       }
     });
-
-    res.status(201).json(home);
+    
+    res.status(201).json({
+      message: 'Home created successfully',
+      home: {
+        id: home.id,
+        name: home.name
+        // Add any other properties you want to return
+      }
+    });
   } catch (error) {
     console.error('Error creating home:', error);
     if (error instanceof Error) {

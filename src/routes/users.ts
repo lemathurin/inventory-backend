@@ -36,6 +36,13 @@ router.post('/login', async (req, res) => {
     // Find the user
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        homes: {
+          select: {
+            id: true
+          }
+        }
+      }
     });
 
     if (!user) {
@@ -52,8 +59,11 @@ router.post('/login', async (req, res) => {
     // Generate a token
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
     
+    // Get the first home's ID (if any)
+    const homeId = user.homes.length > 0 ? user.homes[0].id : null;
+
     // Send the response with both token and id
-    res.status(200).json({ token, id: user.id });
+    res.status(200).json({ token, id: user.id, homeId });
   } catch (error) {
     console.error("Login error:", error);
     res.status(401).json({ error: "Invalid credentials" });
