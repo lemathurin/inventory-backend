@@ -72,32 +72,32 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
   }
 });
 
-// Update a home
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name } = req.body;
-    const updatedHome = await prisma.home.update({
-      where: { id: Number(id) },
-      data: { name },
-    });
-    res.json(updatedHome);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not update home' });
-  }
-});
+// // Update a home
+// router.put('/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { name } = req.body;
+//     const updatedHome = await prisma.home.update({
+//       where: { id: Number(id) },
+//       data: { name },
+//     });
+//     res.json(updatedHome);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Could not update home' });
+//   }
+// });
 
-// Delete a home
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await prisma.home.delete({
-      where: { id: Number(id) },
-    });
-    res.json({ message: 'Home deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Could not delete home' });
-  }
-});
+// // Delete a home
+// router.delete('/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     await prisma.home.delete({
+//       where: { id: Number(id) },
+//     });
+//     res.json({ message: 'Home deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Could not delete home' });
+//   }
+// });
 
 export default router;

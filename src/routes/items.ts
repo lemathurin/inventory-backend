@@ -36,24 +36,6 @@ router.get('/:homeId/items', authenticateToken, async (req: AuthenticatedRequest
   }
 });
 
-// Create a new item
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { name, description } = req.body;
-    const item = await prisma.item.create({
-      data: {
-        name,
-        description,
-        owner: { connect: { id: req.user!.userId } },
-        inventory: { connect: { id: 1 } } // You might want to change this to allow multiple inventories
-      },
-    });
-    res.json(item);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not create item' });
-  }
-});
-
 // Create a new item for a specific home
 router.post('/:homeId/items', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
@@ -77,6 +59,81 @@ router.post('/:homeId/items', authenticateToken, async (req: AuthenticatedReques
   } catch (error) {
     console.error('Error creating item:', error);  // Improve error logging
     res.status(500).json({ error: 'Could not create item', details: (error as Error).message });
+  }
+});
+
+// Update an existing item
+router.put('/:homeId/items/:itemId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { itemId } = req.params;
+    const { name, description, purchaseDate, price, warranty } = req.body;
+    
+    console.log('Updating item:', { itemId, ...req.body });  // Add this log
+
+    // Verify that the item belongs to the authenticated user and the specified home
+    const existingItem = await prisma.item.findFirst({
+      where: {
+        id: itemId,
+        homeId: req.params.homeId,
+        ownerId: req.user!.userId,
+      },
+    });
+
+    if (!existingItem) {
+      return res.status(404).json({ error: 'Item not found or you do not have permission to update it' });
+    }
+
+    const updatedItem = await prisma.item.update({
+      where: { id: itemId },
+      data: {
+        name,
+        description,
+        purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
+        price: price !== undefined ? parseFloat(price as string) : null,
+        warranty: warranty !== undefined ? parseInt(warranty as string) : null,
+      },
+    });
+
+    console.log('Item updated:', updatedItem);  // Add this log
+
+    res.json(updatedItem);
+  } catch (error) {
+    console.error('Error updating item:', error);  // Improve error logging
+    res.status(500).json({ error: 'Could not update item', details: (error as Error).message });
+  }
+});
+
+// Delete an existing item
+router.delete('/:homeId/items/:itemId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { homeId, itemId } = req.params;
+    
+    console.log('Attempting to delete item:', { homeId, itemId, userId: req.user!.userId });  // Add this log
+
+    // Verify that the item belongs to the authenticated user and the specified home
+    const existingItem = await prisma.item.findFirst({
+      where: {
+        id: itemId,
+        homeId: homeId,
+        ownerId: req.user!.userId,
+      },
+    });
+
+    if (!existingItem) {
+      return res.status(404).json({ error: 'Item not found or you do not have permission to delete it' });
+    }
+
+    // Delete the item
+    await prisma.item.delete({
+      where: { id: itemId },
+    });
+
+    console.log('Item deleted successfully:', itemId);  // Add this log
+
+    res.status(204).send(); // 204 No Content is typically used for successful DELETE operations
+  } catch (error) {
+    console.error('Error deleting item:', error);  // Improve error logging
+    res.status(500).json({ error: 'Could not delete item', details: (error as Error).message });
   }
 });
 
