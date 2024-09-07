@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use('/api/homes', homeRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/items', itemRoutes);
+app.use('/api/homes', itemRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Home Inventory API' });

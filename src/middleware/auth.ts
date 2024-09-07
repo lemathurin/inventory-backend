@@ -19,17 +19,17 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     }
 
     console.log('Token verified, user:', user);
-    (req as any).user = user;
+    (req as AuthenticatedRequest).user = { userId: String(user.userId) };
     next();
   });
 }
 
-export const generateToken = (userId: number): string => {
+export const generateToken = (userId: string): string => {
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, {
     expiresIn: '1d',
   });
 };
 
 export interface AuthenticatedRequest extends Request {
-  user?: { userId: number };
+  user?: { userId: string };
 }

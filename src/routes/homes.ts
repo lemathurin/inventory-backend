@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { AuthenticatedRequest, authenticateToken } from '../middleware/auth';
 import { RequestWithUser } from '../types/express'; // Make sure this import exists
 
 const router = express.Router();
@@ -55,12 +55,12 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific home
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const home = await prisma.home.findUnique({
-      where: { id: Number(id) },
-      include: { users: true, inventories: true }
+      where: { id: String(id) },
+      include: { users: true, items: true }
     });
     if (home) {
       res.json(home);
