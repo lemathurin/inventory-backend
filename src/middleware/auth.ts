@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { RequestWithUser } from '../types/express';
+
+export interface AuthenticatedRequest extends Request {
+  user: { userId: string };
+}
 
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   console.log('Authenticating token...');
@@ -12,7 +15,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     return res.sendStatus(401);
   }
 
-  jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
+  jwt.verify(token, process.env.JWT_SECRET as string, (err: jwt.VerifyErrors | null, user: any) => {
     if (err) {
       console.log('Token verification failed:', err.message);
       return res.sendStatus(403);
@@ -29,7 +32,3 @@ export const generateToken = (userId: string): string => {
     expiresIn: '1d',
   });
 };
-
-export interface AuthenticatedRequest extends Request {
-  user?: { userId: string };
-}

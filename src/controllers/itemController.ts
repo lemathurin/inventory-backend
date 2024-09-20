@@ -1,12 +1,10 @@
-import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
 
-const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get all items for the user
-router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
+export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const items = await prisma.item.findMany({
       where: { ownerId: req.user!.userId }
@@ -15,10 +13,9 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch items' });
   }
-});
+};
 
-// Get all items for a specific home
-router.get('/:homeId/items', authenticateToken, async (req: AuthenticatedRequest, res) => {
+export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const homeId = String(req.params.homeId);
     console.log('Fetching items for homeId:', homeId);
@@ -34,15 +31,14 @@ router.get('/:homeId/items', authenticateToken, async (req: AuthenticatedRequest
     console.error('Error fetching items:', error);
     res.status(500).json({ error: 'Could not fetch items' });
   }
-});
+};
 
-// Create a new item for a specific home
-router.post('/:homeId/items', authenticateToken, async (req: AuthenticatedRequest, res) => {
+export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, description } = req.body;
-    const homeId = String(req.params.homeId);  // Change to String to match UUID
-    
-    console.log('Creating item:', { name, description, homeId, userId: req.user!.userId });  // Add this log
+    const homeId = String(req.params.homeId);
+
+    console.log('Creating item:', { name, description, homeId, userId: req.user!.userId });
 
     const item = await prisma.item.create({
       data: {
@@ -53,24 +49,21 @@ router.post('/:homeId/items', authenticateToken, async (req: AuthenticatedReques
       },
     });
 
-    console.log('Item created:', item);  // Add this log
-
+    console.log('Item created:', item);
     res.status(201).json(item);
   } catch (error) {
-    console.error('Error creating item:', error);  // Improve error logging
+    console.error('Error creating item:', error);
     res.status(500).json({ error: 'Could not create item', details: (error as Error).message });
   }
-});
+};
 
-// Update an existing item
-router.put('/:homeId/items/:itemId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemId } = req.params;
     const { name, description, purchaseDate, price, warranty } = req.body;
-    
-    console.log('Updating item:', { itemId, ...req.body });  // Add this log
 
-    // Verify that the item belongs to the authenticated user and the specified home
+    console.log('Updating item:', { itemId, ...req.body });
+
     const existingItem = await prisma.item.findFirst({
       where: {
         id: itemId,
@@ -94,23 +87,20 @@ router.put('/:homeId/items/:itemId', authenticateToken, async (req: Authenticate
       },
     });
 
-    console.log('Item updated:', updatedItem);  // Add this log
-
+    console.log('Item updated:', updatedItem);
     res.json(updatedItem);
   } catch (error) {
-    console.error('Error updating item:', error);  // Improve error logging
+    console.error('Error updating item:', error);
     res.status(500).json({ error: 'Could not update item', details: (error as Error).message });
   }
-});
+};
 
-// Delete an existing item
-router.delete('/:homeId/items/:itemId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { homeId, itemId } = req.params;
-    
-    console.log('Attempting to delete item:', { homeId, itemId, userId: req.user!.userId });  // Add this log
 
-    // Verify that the item belongs to the authenticated user and the specified home
+    console.log('Attempting to delete item:', { homeId, itemId, userId: req.user!.userId });
+
     const existingItem = await prisma.item.findFirst({
       where: {
         id: itemId,
@@ -123,18 +113,14 @@ router.delete('/:homeId/items/:itemId', authenticateToken, async (req: Authentic
       return res.status(404).json({ error: 'Item not found or you do not have permission to delete it' });
     }
 
-    // Delete the item
     await prisma.item.delete({
       where: { id: itemId },
     });
 
-    console.log('Item deleted successfully:', itemId);  // Add this log
-
-    res.status(204).send(); // 204 No Content is typically used for successful DELETE operations
+    console.log('Item deleted successfully:', itemId);
+    res.status(204).send();
   } catch (error) {
-    console.error('Error deleting item:', error);  // Improve error logging
+    console.error('Error deleting item:', error);
     res.status(500).json({ error: 'Could not delete item', details: (error as Error).message });
   }
-});
-
-export default router;
+};
