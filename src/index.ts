@@ -12,7 +12,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors({
-  origin: 'http://localhost:3001', // or whatever your frontend URL is
+  origin: 'http://localhost:3001',
   credentials: true
 }));
 app.use(express.json());

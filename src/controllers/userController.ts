@@ -49,7 +49,7 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
     const homeId = user.homes.length > 0 ? user.homes[0].id : null;
 
     res.status(200).json({ token, id: user.id, homeId });
@@ -158,5 +158,46 @@ export const getAllUsers = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Could not fetch users' });
+  }
+};
+
+export const changeUserPassword = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { userId } = req.user as { userId: string };
+    const { currentPassword, newPassword } = req.body;
+
+    console.log("Received request to change password:", { userId });
+
+    if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Invalid password provided' });
+    }
+
+    // Fetch the user with their current password
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify the current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+      select: { id: true, name: true, email: true },
+    });
+
+    console.log("User password updated successfully");
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error: any) {
+    console.error('Error changing user password:', error);
+    res.status(500).json({ error: 'An error occurred while changing the user password', details: error.message });
   }
 };
