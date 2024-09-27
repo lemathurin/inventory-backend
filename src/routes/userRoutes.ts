@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail } from '../controllers/userController';
+import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail, getCurrentUser } from '../controllers/userController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
@@ -18,5 +18,8 @@ router.put('/change-name', authenticateToken, changeUserName);
 
 // Change user email
 router.put('/change-email', authenticateToken, changeUserEmail);
+
+// Get current user data
+router.get('/me', authenticateToken, getCurrentUser);
 
 export default router;
