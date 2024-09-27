@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 export interface AuthenticatedRequest extends Request {
-  user: { userId: string };
+  user?: { userId: string };
 }
 
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   console.log('Authenticating token...');
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -22,7 +22,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     }
 
     console.log('Token verified, user:', user);
-    (req as AuthenticatedRequest).user = { userId: String(user.userId) };
+    req.user = { userId: String(user.userId) };
     next();
   });
 }

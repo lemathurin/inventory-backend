@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 export const createHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
     console.log('Received request body:', req.body);
-    console.log('User ID from token:', req.user.userId);
+    console.log('User ID from token:', req.user?.userId);
     
     const { name } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     const home = await prisma.home.create({
       data: {
