@@ -201,3 +201,46 @@ export const changeUserPassword = async (req: AuthenticatedRequest, res: Respons
     res.status(500).json({ error: 'An error occurred while changing the user password', details: error.message });
   }
 };
+
+export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { userId } = req.user as { userId: string };
+    const { password } = req.body;
+
+    console.log("Received request to delete account:", { userId });
+
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid password provided' });
+    }
+
+    // Fetch the user
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify the password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: 'Incorrect password' });
+    }
+
+    // Delete associated records first
+    await prisma.$transaction(async (prisma) => {
+      // Delete associated items
+      await prisma.item.deleteMany({ where: { ownerId: userId } });
+
+      // Delete associated homes
+      await prisma.home.deleteMany({ where: { users: { some: { id: userId } } } });
+
+      // Delete the user
+      await prisma.user.delete({ where: { id: userId } });
+    });
+
+    console.log("User account and associated data deleted successfully");
+    res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error: any) {
+    console.error('Error deleting user account:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the user account', details: error.message });
+  }
+};
