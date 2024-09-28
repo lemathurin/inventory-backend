@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 export const createHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
     console.log('Received request body:', req.body);
-    console.log('User ID from token:', req.user.userId);
+    console.log('User ID from token:', req.user?.userId);
     
     const { name } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     const home = await prisma.home.create({
       data: {
@@ -65,5 +65,38 @@ export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch home' });
+  }
+};
+
+export const getUserHomes = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const userHomes = await prisma.home.findMany({
+      where: {
+        users: {
+          some: {
+            id: userId
+          }
+        }
+      },
+      include: {
+        users: true,
+        items: true
+      }
+    });
+
+    res.json(userHomes);
+  } catch (error) {
+    console.error('Error fetching user homes:', error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'An error occurred while fetching user homes', details: error.message });
+    } else {
+      res.status(500).json({ error: 'An unknown error occurred while fetching user homes' });
+    }
   }
 };

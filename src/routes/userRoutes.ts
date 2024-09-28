@@ -1,5 +1,6 @@
 import express from 'express';
-import { registerUser, loginUser, getAllUsers } from '../controllers/userController';
+import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail, changeUserPassword, getCurrentUser, deleteUserAccount } from '../controllers/userController';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -11,5 +12,20 @@ router.post('/login', loginUser);
 
 // Get all users
 router.get('/', getAllUsers);
+
+// Change user name
+router.put('/change-name', authenticateToken, changeUserName);
+
+// Change user email
+router.put('/change-email', authenticateToken, changeUserEmail);
+
+// Change user password
+router.put('/change-password', authenticateToken, changeUserPassword);
+
+// Get current user data
+router.get('/me', authenticateToken, getCurrentUser);
+
+// Delete account
+router.delete('/delete-account', authenticateToken, deleteUserAccount);
 
 export default router;
