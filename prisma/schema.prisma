@@ -6,13 +6,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-
-
-*@unique définit une contrainte d'unicité sur un champ.
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -29,8 +26,6 @@ model Home {
   items      Item[]
 }
 
-
-*@relation(fields: [ownerId], references: [id]) permet de relier les tables en fonction de la clé étrangère ownerId
 model Item {
   id           String    @id @default(uuid())
   name         String
