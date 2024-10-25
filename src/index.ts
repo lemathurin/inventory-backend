@@ -7,14 +7,37 @@ import itemRoutes from './routes/itemRoutes';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
 const app = express();
 const prisma = new PrismaClient();
 
+const allowedOrigins = [
+  'http://78.47.140.225:3002',
+  'http://localhost:3002',
+];
+
 app.use(cors({
-  origin: ['http://78.47.140.225:3002', 'http://localhost:3002'],
-  credentials: true
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
+
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
+
+app.options('*', cors());
+
 app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -27,6 +50,21 @@ app.get('/', (req, res) => {
   res.json({ message: 'Home Inventory API' });
 });
 
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err.message);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log('Allowed origins:', allowedOrigins);
+});
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });
