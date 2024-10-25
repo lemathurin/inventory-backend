@@ -12,7 +12,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors({
-  origin: 'http://78.47.140.225:3002',
+  origin: ['http://78.47.140.225:3002', 'http://localhost:3002'],
   credentials: true
 }));
 app.use(express.json());
