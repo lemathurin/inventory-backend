@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-const allowedOrigins = ['http://78.47.140.225:4020', 'http://localhost:4020', 'http://localhost:3000'];
+const allowedOrigins = ['http://78.47.140.225:4020', 'http://localhost:4020', 'http://localhost:3000', 'http://78.47.140.225:3020'];
 
 app.use(cors({
   origin: function(origin, callback) {
