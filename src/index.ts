@@ -8,12 +8,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 const app = express();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+})
 
 const allowedOrigins = ['http://78.47.140.225:4020', 'http://localhost:4020', 'http://localhost:3000', 'http://78.47.140.225:3020'];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {

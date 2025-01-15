@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+})
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -84,19 +86,19 @@ export const changeUserName = async (req: AuthenticatedRequest, res: Response) =
   try {
     const { userId } = req.user as { userId: string };
     const { newName } = req.body;
-    
+
     console.log("Received request to change name:", { userId, newName });
-    
+
     if (!newName || typeof newName !== 'string') {
       return res.status(400).json({ error: 'Invalid name provided' });
     }
-    
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { name: newName },
       select: { id: true, name: true, email: true },
     });
-    
+
     console.log("User updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
   } catch (error: any) {

@@ -2,7 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+})
 
 export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
   try {

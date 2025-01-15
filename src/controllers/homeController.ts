@@ -2,8 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
-
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+})
 
 //Fonction de création d'une nouvelle maison (Home) dans la BDD à l'aide de Prisma.
 //Avec pour paramètres la requête HTTP (corps + authentification ) et la réponse HTTP
@@ -12,7 +13,7 @@ export const createHome = async (req: AuthenticatedRequest, res: Response) => {
     //Vérifie dans la console le corps de la requête et l'ID de l'utilisateur
     console.log('Received request body:', req.body);
     console.log('User ID from token:', req.user?.userId);
-    
+
     //On récupère la donnée name du corps de la requête
     const { name } = req.body;
     //On stocke l'ID de l'utilisateur dans une constante. 
@@ -57,7 +58,7 @@ export const createHome = async (req: AuthenticatedRequest, res: Response) => {
 //Avec pour paramètres la requête HTTP (corps + authentification ) et la réponse HTTP
 export const getAllHomes = async (req: Request, res: Response) => {
   try {
-//Récupère toutes les maisons de la BDD grâce à une méthode de Prisma et les stocke dans une constante.
+    //Récupère toutes les maisons de la BDD grâce à une méthode de Prisma et les stocke dans une constante.
     const homes = await prisma.home.findMany();
     //Stocke les données récupérées dans un tableau d'objets en JSON.
     res.json(homes);
@@ -79,7 +80,7 @@ export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
       //Inclut toutes les données des utilisateurs et des objets associés à cette maison.
       include: { users: true, items: true }
     });
-//Si une maison a été trouvée, envoie les données dans une réponse JSON. 
+    //Si une maison a été trouvée, envoie les données dans une réponse JSON. 
     if (home) {
       res.json(home);
       //Si aucune maison n'est trouvée on envoie un message d'erreur dans le JSON.
@@ -96,11 +97,11 @@ export const getUserHomes = async (req: AuthenticatedRequest, res: Response) => 
   try {
     //Récupération de l'ID de l'utilsateur dans la requête. 
     const userId = req.user?.userId;
-//Si l'ID de l'utilisateur est undefined, il n'est donc pas authentifié, on envoie alors un message d'erreur le signalant.
+    //Si l'ID de l'utilisateur est undefined, il n'est donc pas authentifié, on envoie alors un message d'erreur le signalant.
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
-//Fonction de récupération de Primsa de toutes les maisons associé à cet utilisateur (il existe au moins un utilisateur dont l'ID correspond)
+    //Fonction de récupération de Primsa de toutes les maisons associé à cet utilisateur (il existe au moins un utilisateur dont l'ID correspond)
     const userHomes = await prisma.home.findMany({
       where: {
         users: {
