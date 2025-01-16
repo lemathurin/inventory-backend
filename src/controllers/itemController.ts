@@ -21,12 +21,29 @@ export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) =
   try {
     const homeId = String(req.params.homeId);
     console.log('Fetching items for homeId:', homeId);
+
+    const home = await prisma.home.findFirst({
+      where: {
+        id: homeId,
+        users: {
+          some: {
+            id: req.user!.userId
+          }
+        }
+      }
+    });
+
+    if (!home) {
+      return res.status(404).json({ error: 'Home not found or you do not have permission to access it' });
+    }
+
     const items = await prisma.item.findMany({
       where: {
         homeId: homeId,
         ownerId: req.user!.userId,
       }
     });
+
     console.log('Items found:', items.length);
     res.json(items);
   } catch (error) {
