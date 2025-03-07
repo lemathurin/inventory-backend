@@ -106,7 +106,7 @@ export const getUserHomes = async (req: AuthenticatedRequest, res: Response) => 
       where: {
         users: {
           some: {
-            id: userId
+            userId: userId
           }
         }
       },

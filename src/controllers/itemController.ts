@@ -27,7 +27,7 @@ export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) =
         id: homeId,
         users: {
           some: {
-            id: req.user!.userId
+            userId: req.user!.userId
           }
         }
       }
@@ -40,7 +40,6 @@ export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) =
     const items = await prisma.item.findMany({
       where: {
         homeId: homeId,
-        ownerId: req.user!.userId,
       }
     });
 
@@ -51,6 +50,41 @@ export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) =
     res.status(500).json({ error: 'Could not fetch items' });
   }
 };
+
+// Requête à retravailler
+// export const getUserItemsByHome = async (req: AuthenticatedRequest, res: Response) => {
+//   try {
+//     const homeId = String(req.params.homeId);
+//     console.log('Fetching items for homeId:', homeId);
+
+//     const home = await prisma.home.findFirst({
+//       where: {
+//         id: homeId,
+//         users: {
+//           some: {
+//             userId: req.user!.userId
+//           }
+//         }
+//       }
+//     });
+
+//     if (!home) {
+//       return res.status(404).json({ error: 'Home not found or you do not have permission to access it' });
+//     }
+
+//     const items = await prisma.item.findMany({
+//       where: {
+//         homeId: homeId,
+//       }
+//     });
+
+//     console.log('Items found:', items.length);
+//     res.json(items);
+//   } catch (error) {
+//     console.error('Error fetching items:', error);
+//     res.status(500).json({ error: 'Could not fetch items' });
+//   }
+// };
 
 export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -63,7 +97,7 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
       data: {
         name,
         description,
-        ownerId: req.user!.userId,
+        userId: req.user!.userId,
         homeId: homeId
       },
     });
