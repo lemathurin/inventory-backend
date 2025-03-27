@@ -22,6 +22,12 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     res.status(201).json({ token, id: user.id });
   } catch (error) {
     console.error('Registration error:', error);
@@ -59,6 +65,12 @@ export const loginUser = async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({ token, id: user.id, homeId });
   } catch (error) {
     console.error('Login error:', error);
@@ -72,7 +84,34 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true,
+        homes: {
+          select: {
+            homeId: true,
+            home: {
+              select: {
+                id: true,
+                name: true,
+                address: true
+              }
+            }
+          }
+        },
+        items: {
+          select: {
+            item: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
+          }
+        }
+      },
     });
 
     if (!user) {
@@ -80,9 +119,9 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
     }
 
     res.status(200).json(user);
-  } catch (error) {
-    console.error('Error fetching current user:', error);
-    res.status(500).json({ error: 'An error occurred while fetching user data' });
+  } catch (error: any) {
+    console.error('Error fetching current user:', error.message);
+    res.status(500).json({ error: 'An error occurred while fetching user data', details: error.message });
   }
 };
 
