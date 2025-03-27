@@ -15,16 +15,24 @@ export const createHome = async (req: AuthenticatedRequest, res: Response) => {
     console.log('User ID from token:', req.user?.userId);
 
     //On récupère la donnée name du corps de la requête
-    const { name } = req.body;
+    const { name, address } = req.body;
     //On stocke l'ID de l'utilisateur dans une constante. 
     const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     //On appelle la méthode  create  de l'instance  prisma.home en définissant les données à insérer dans la table home.
     const home = await prisma.home.create({
       data: {
         name,
+        address,
         users: {
-          connect: { id: userId }
+          create: {
+            userId: userId,
+            admin: true
+          }
         }
       },
       //On récupère au passage toutes les utilisation des Users associés à la maison.
@@ -106,7 +114,7 @@ export const getUserHomes = async (req: AuthenticatedRequest, res: Response) => 
       where: {
         users: {
           some: {
-            id: userId
+            userId: userId
           }
         }
       },

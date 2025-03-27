@@ -37,7 +37,12 @@ export const loginUser = async (req: Request, res: Response) => {
       where: { email },
       include: {
         homes: {
-          select: { id: true },
+          select: {
+            homeId: true,
+            home: {
+              select: { id: true }
+            }
+          },
         },
       },
     });
@@ -52,7 +57,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
-    const homeId = user.homes.length > 0 ? user.homes[0].id : null;
+    const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
 
     res.status(200).json({ token, id: user.id, homeId });
   } catch (error) {
