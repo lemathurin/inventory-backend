@@ -40,7 +40,7 @@ app.use(express.json());
 const PORT = parseInt(process.env.PORT || '4000', 10);
 
 app.use('/api/homes', homeRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/homes', itemRoutes);
 
 app.get('/', (req, res) => {
