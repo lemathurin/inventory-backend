@@ -6,11 +6,11 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  console.log('Authenticating token...');
+  // console.log('Authenticating token...');
 
   // Get cookies from headers manually
   const cookieHeader = req.headers.cookie;
-  console.log("Request Headers:", req.headers);
+  // console.log("Request Headers:", req.headers);
 
   if (!cookieHeader) {
     console.log('No cookie header found');
@@ -22,7 +22,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
     cookieHeader.split('; ').map(c => c.split('='))
   );
 
-  console.log("Parsed Cookies:", cookies);
+  // console.log("Parsed Cookies:", cookies);
 
   const token = cookies.token;
   
@@ -41,7 +41,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
       return res.sendStatus(403);
     }
 
-    console.log('Token verified, user:', user);
+    // console.log('Token verified, user:', user);
     req.user = { userId: user.userId };
     next();
   });

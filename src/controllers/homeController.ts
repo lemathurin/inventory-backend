@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  // log: ['query', 'info', 'warn', 'error'],
 })
 
 //Fonction de création d'une nouvelle maison (Home) dans la BDD à l'aide de Prisma.

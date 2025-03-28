@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  // log: ['query', 'info', 'warn', 'error'],
 })
 
 export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
@@ -153,6 +153,12 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
     if (!existingItem) {
       return res.status(404).json({ error: 'Item not found or you do not have permission to delete it' });
     }
+
+    await prisma.userItem.deleteMany({
+      where: {
+        itemId: itemId
+      }
+    });
 
     await prisma.item.delete({
       where: { id: itemId },
