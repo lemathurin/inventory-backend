@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  // log: ['query', 'info', 'warn', 'error'],
 })
 
 const allowedOrigins = ['http://78.47.140.225:4020', 'http://localhost:4020', 'http://localhost:3000', 'http://78.47.140.225:3020'];
@@ -39,9 +39,9 @@ app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
 
-app.use('/api/homes', homeRoutes);
+app.use('/api/home', homeRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/homes', itemRoutes);
+app.use('/api/home', itemRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Home Inventory API' });
