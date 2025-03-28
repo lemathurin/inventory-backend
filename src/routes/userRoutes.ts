@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail, changeUserPassword, getCurrentUser, deleteUserAccount } from '../controllers/userController';
+import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail, changeUserPassword, getCurrentUser, deleteUserAccount, logoutUser } from '../controllers/userController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
@@ -9,6 +9,9 @@ router.post('/register', registerUser);
 
 // Login a user
 router.post('/login', loginUser);
+
+// Logout a user
+router.post('/logout', logoutUser);
 
 // Get all users
 router.get('/', getAllUsers);

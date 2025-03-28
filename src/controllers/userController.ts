@@ -290,3 +290,17 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
     res.status(500).json({ error: 'An error occurred while deleting the user account', details: error.message });
   }
 };
+
+export const logoutUser = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'An error occurred during logout' });
+  }
+};
