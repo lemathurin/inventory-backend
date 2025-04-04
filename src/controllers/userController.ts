@@ -274,10 +274,12 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
     // Delete associated records first
     await prisma.$transaction(async (prisma) => {
       // Delete associated items
-      await prisma.item.deleteMany({ where: { ownerId: userId } });
+      await prisma.userItem.deleteMany({ where: { userId } });
+      await prisma.item.deleteMany({ where: { users: { some: { userId } } } });
 
       // Delete associated homes
-      await prisma.home.deleteMany({ where: { users: { some: { id: userId } } } });
+      await prisma.userHome.deleteMany({ where: { userId } });
+      await prisma.home.deleteMany({ where: { users: { some: { userId } } } });
 
       // Delete the user
       await prisma.user.delete({ where: { id: userId } });
