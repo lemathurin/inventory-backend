@@ -14,7 +14,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
     console.log('No token found');
     return res.sendStatus(401);
   }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   jwt.verify(token, process.env.JWT_SECRET as string, (err: jwt.VerifyErrors | null, user: any) => {
     if (err) {
       console.log('Token verification failed:', err.message);

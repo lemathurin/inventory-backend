@@ -73,6 +73,7 @@ export const getAllHomes = async (req: Request, res: Response) => {
     //Si une erreur se produit lors de la récupération des maisons, 
     //renvoie une réponse avec un statut 500 et un message d'erreur qui indique que la récupération des maisons a échoué.  
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ error: 'Could not fetch homes' });
   }
 };
@@ -97,6 +98,7 @@ export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
     }
     //Envoie un message d'erreur si un eerreur se produit dans la fonction. 
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ error: 'Could not fetch home' });
   }
 };

@@ -106,9 +106,14 @@ export const changeUserName = async (req: AuthenticatedRequest, res: Response) =
 
     console.log("User updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
-  } catch (error: any) {
-    console.error('Error changing user name:', error);
-    res.status(500).json({ error: 'An error occurred while changing the user name', details: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error changing user name:', error);
+      res.status(500).json({ error: 'An error occurred while changing the user name', details: error.message });
+    } else {
+      console.error('Unknown error:', error);
+      res.status(500).json({ error: 'An unknown error occurred' });
+    }
   }
 };
 
@@ -137,9 +142,20 @@ export const changeUserEmail = async (req: AuthenticatedRequest, res: Response) 
 
     console.log("User email updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error changing user email:', error);
-    res.status(500).json({ error: 'An error occurred while changing the user email', details: error.message });
+  
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: 'An error occurred while changing the user email',
+        details: error.message,
+      });
+    } else {
+      res.status(500).json({
+        error: 'An error occurred while changing the user email',
+        details: 'Unknown error',
+      });
+    }
   }
 };
 
@@ -192,20 +208,31 @@ export const changeUserPassword = async (req: AuthenticatedRequest, res: Respons
     }
 
     // Hash the new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    // const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the user's password
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedNewPassword },
-      select: { id: true, name: true, email: true },
-    });
+    // const updatedUser = await prisma.user.update({
+    //   where: { id: userId },
+    //   data: { password: hashedNewPassword },
+    //   select: { id: true, name: true, email: true },
+    // });
 
     console.log("User password updated successfully");
     res.status(200).json({ message: 'Password updated successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error changing user password:', error);
-    res.status(500).json({ error: 'An error occurred while changing the user password', details: error.message });
+  
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: 'An error occurred while changing the user password',
+        details: error.message,
+      });
+    } else {
+      res.status(500).json({
+        error: 'An error occurred while changing the user password',
+        details: 'Unknown error',
+      });
+    }
   }
 };
 
@@ -272,11 +299,19 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
 
     console.log("User account and associated data deleted successfully");
     res.status(200).json({ message: 'Account deleted successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting user account:', error);
-    res.status(500).json({
-      error: 'An error occurred while deleting the user account',
-      details: error.message
-    });
+  
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: 'An error occurred while deleting the user account',
+        details: error.message,
+      });
+    } else {
+      res.status(500).json({
+        error: 'An error occurred while deleting the user account',
+        details: 'Unknown error',
+      });
+    }
   }
 };

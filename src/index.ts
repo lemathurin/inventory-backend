@@ -7,8 +7,7 @@ import itemRoutes from './routes/itemRoutes';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
-require('dotenv').config({ path: envPath });
+//const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 const app = express();
 const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
@@ -50,7 +49,7 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response) => {
   console.error('Error:', err.message);
   res.status(500).json({
     error: 'Internal Server Error',

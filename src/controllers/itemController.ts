@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient({
@@ -19,6 +19,7 @@ export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
     });
     res.json(items);
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ error: 'Could not fetch items' });
   }
 };
