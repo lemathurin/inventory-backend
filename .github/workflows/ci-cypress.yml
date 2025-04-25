@@ -17,8 +17,8 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_DB: testdb
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
         options: >-
           --health-cmd="pg_isready"
           --health-interval=10s
@@ -42,7 +42,7 @@ jobs:
           npx prisma generate
           npx prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/testdb
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/testdb
 
       - name: ✅ Vérification ESLint
         run: npm run lint
