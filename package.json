@@ -14,7 +14,7 @@
     "cypress:run": "cypress run",
     "test:ci": "start-server-and-test dev:test http://localhost:4000 cypress:run",
     "lint": "eslint . --ext .ts --max-warnings=0",
-    "format": "prettier --check ."
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",

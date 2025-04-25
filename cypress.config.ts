@@ -1,7 +1,7 @@
-import { defineConfig } from 'cypress';
-import * as dotenv from 'dotenv';
+import { defineConfig } from "cypress";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: '.env.test' });
+dotenv.config({ path: ".env.test" });
 
 export default defineConfig({
   e2e: {
@@ -9,6 +9,6 @@ export default defineConfig({
     supportFile: false,
     setupNodeEvents(on, config) {
       return config;
-    }
-  }
+    },
+  },
 });

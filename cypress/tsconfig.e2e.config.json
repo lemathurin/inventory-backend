@@ -8,11 +8,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["cypress"]
   },
-  "include": [
-    "**/*.ts",
-    "cypress/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts", "cypress/**/*.ts"],
+  "exclude": ["node_modules"]
 }

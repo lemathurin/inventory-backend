@@ -7,17 +7,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./", 
-    "baseUrl": "./", 
+    "rootDir": "./",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src/**/*", 
-    "cypress.config.ts" 
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*", "cypress.config.ts"],
+  "exclude": ["node_modules"]
 }
