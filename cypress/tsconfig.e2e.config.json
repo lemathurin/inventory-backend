@@ -6,16 +6,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./", 
-    "baseUrl": "./", 
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "types": ["cypress"]
   },
   "include": [
-    "src/**/*", 
-    "cypress.config.ts" 
+    "**/*.ts",
+    "cypress/**/*.ts"
   ],
   "exclude": [
     "node_modules"

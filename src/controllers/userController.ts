@@ -37,7 +37,12 @@ export const loginUser = async (req: Request, res: Response) => {
       where: { email },
       include: {
         homes: {
-          select: { homeId: true },
+          select: {
+            homeId: true,
+            home: {
+              select: { id: true }
+            }
+          },
         },
       },
     });
@@ -221,28 +226,57 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Verify the password
+    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ error: 'Incorrect password' });
     }
 
-    // Delete associated records first
+    // Start transaction to delete associated data
     await prisma.$transaction(async (prisma) => {
-      // Delete associated items
-      await prisma.item.deleteMany({ where: { ownerId: userId } });
+      // 1. Delete UserItem relations
+      await prisma.userItem.deleteMany({
+        where: { userId: userId }
+      });
 
-      // Delete associated homes
-      await prisma.home.deleteMany({ where: { users: { some: { id: userId } } } });
+      // 2. Find items created by this user (if applicable via relation)
+      const userItems = await prisma.userItem.findMany({
+        where: { userId: userId },
+        select: { itemId: true }
+      });
 
-      // Delete the user
-      await prisma.user.delete({ where: { id: userId } });
+      const itemIds = userItems.map(i => i.itemId);
+
+      // 3. Delete those items
+      if (itemIds.length > 0) {
+        await prisma.item.deleteMany({
+          where: { id: { in: itemIds } }
+        });
+      }
+
+      // 4. Delete UserHome relations
+      await prisma.userHome.deleteMany({
+        where: { userId: userId }
+      });
+
+      // 5. Delete UserRoom relations
+      await prisma.userRoom.deleteMany({
+        where: { userId: userId }
+      });
+
+      // 6. Finally, delete the user
+      await prisma.user.delete({
+        where: { id: userId }
+      });
     });
 
     console.log("User account and associated data deleted successfully");
     res.status(200).json({ message: 'Account deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting user account:', error);
-    res.status(500).json({ error: 'An error occurred while deleting the user account', details: error.message });
+    res.status(500).json({
+      error: 'An error occurred while deleting the user account',
+      details: error.message
+    });
   }
 };

@@ -1,0 +1,52 @@
+name: CI - Cypress E2E tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Prisma
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+
+      - name: ✅ Vérification ESLint
+        run: npm run lint
+
+      - name: ✅ Vérification Prettier
+        run: npm run format
+
+      - name: Run E2E tests
+        run: npm run test:ci

@@ -9,7 +9,13 @@ const prisma = new PrismaClient({
 export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const items = await prisma.item.findMany({
-      where: { ownerId: req.user!.userId }
+      where: {
+        users: {
+          some: {
+            userId: req.user!.userId
+          }
+        }
+      }
     });
     res.json(items);
   } catch (error) {
@@ -40,6 +46,11 @@ export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) =
     const items = await prisma.item.findMany({
       where: {
         homeId: homeId,
+        users: {
+          some: {
+            userId: req.user!.userId
+          }
+        }
       }
     });
 
@@ -97,8 +108,13 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
       data: {
         name,
         description,
-        userId: req.user!.userId,
-        homeId: homeId
+        homeId: homeId,
+        users: {
+          create: {
+            userId: req.user!.userId,
+            admin: true
+          }
+        }
       },
     });
 
@@ -113,7 +129,7 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
 export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemId } = req.params;
-    const { name, description, purchaseDate, price, warranty } = req.body;
+    const { name, description, purchaseDate, price } = req.body;
 
     console.log('Updating item:', { itemId, ...req.body });
 
@@ -121,7 +137,11 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
       where: {
         id: itemId,
         homeId: req.params.homeId,
-        ownerId: req.user!.userId,
+        users: {
+          some: {
+            userId: req.user!.userId
+          }
+        }
       },
     });
 
@@ -136,7 +156,6 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
         description,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
         price: price !== undefined ? parseFloat(price as string) : null,
-        warranty: warranty !== undefined ? parseInt(warranty as string) : null,
       },
     });
 
@@ -158,7 +177,11 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
       where: {
         id: itemId,
         homeId: homeId,
-        ownerId: req.user!.userId,
+        users: {
+          some: {
+            userId: req.user!.userId
+          }
+        }
       },
     });
 
