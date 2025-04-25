@@ -30,6 +30,7 @@
     "pg": "^8.13.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.25.1",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/cypress": "^0.1.6",
@@ -42,15 +43,17 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
     "dotenv-cli": "^8.0.0",
-    "eslint": "^9.24.0",
+    "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.2.6",
+    "globals": "^16.0.0",
     "prettier": "^3.5.3",
     "prisma": "^5.19.1",
     "start-server-and-test": "^2.0.11",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.0"
   }
 }
