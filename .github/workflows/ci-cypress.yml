@@ -41,6 +41,8 @@ jobs:
         run: |
           npx prisma generate
           npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/testdb
 
       - name: ✅ Vérification ESLint
         run: npm run lint
