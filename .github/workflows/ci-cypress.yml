@@ -50,10 +50,7 @@ jobs:
       - name: ✅ Vérification Prettier
         run: npm run format
 
-      - name: Wait for backend to be ready
-        run: |
-          npm run dev:test &  
-          npx wait-on http://localhost:4000
-
       - name: Run E2E tests
         run: npm run test:ci
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/testdb
