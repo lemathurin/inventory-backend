@@ -54,5 +54,5 @@ jobs:
         run: npm run test:ci
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/testdb
-          JWT_SECRET: test-secret
+          JWT_SECRET: testsecret
           PORT: 4000
