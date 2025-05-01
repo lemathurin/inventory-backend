@@ -6,8 +6,8 @@ import userRoutes from "./routes/userRoutes";
 import itemRoutes from "./routes/itemRoutes";
 import dotenv from "dotenv";
 
-dotenv.config();
-//const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envPath });
 const app = express();
 const prisma = new PrismaClient({
   log: ["query", "info", "warn", "error"],
