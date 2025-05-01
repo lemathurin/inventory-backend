@@ -77,7 +77,3 @@ process.on("SIGTERM", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
-
-app.get('/health', (_req, res) => {
-  res.status(200).send('OK');
-});

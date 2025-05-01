@@ -50,16 +50,9 @@ jobs:
       - name: ✅ Vérification Prettier
         run: npm run format
 
-      - name: Wait for backend to be ready
-        run: |
-          npx wait-on http://localhost:4000/health
-          curl -I http://localhost:4000/health
-
-      - name: Check database connection
-        run: |
-          psql $DATABASE_URL -c "SELECT 1"
-
       - name: Run E2E tests
         run: npm run test:ci
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/testdb
+          JWT_SECRET: test-secret
+          PORT: 4000
