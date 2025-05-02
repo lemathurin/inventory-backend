@@ -42,7 +42,7 @@ jobs:
           npx prisma generate
           npx prisma migrate deploy
         env:
-          DATABASE_URL: ${DATABASE_URL}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Vérification ESLint
         run: npm run lint
@@ -57,6 +57,6 @@ jobs:
           wait-on: 'http://localhost:4000'
           command: npm run cypress:run
         env:
-          DATABASE_URL: ${DATABASE_URL}
-          JWT_SECRET: ${JWT_SECRET}
-          PORT: ${PORT}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
