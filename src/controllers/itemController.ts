@@ -44,11 +44,9 @@ export const getItemsByHome = async (
     });
 
     if (!home) {
-      return res
-        .status(404)
-        .json({
-          error: "Home not found or you do not have permission to access it",
-        });
+      return res.status(404).json({
+        error: "Home not found or you do not have permission to access it",
+      });
     }
 
     const items = await prisma.item.findMany({
@@ -135,12 +133,10 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
     res.status(201).json(item);
   } catch (error) {
     console.error("Error creating item:", error);
-    res
-      .status(500)
-      .json({
-        error: "Could not create item",
-        details: (error as Error).message,
-      });
+    res.status(500).json({
+      error: "Could not create item",
+      details: (error as Error).message,
+    });
   }
 };
 
@@ -164,11 +160,9 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     if (!existingItem) {
-      return res
-        .status(404)
-        .json({
-          error: "Item not found or you do not have permission to update it",
-        });
+      return res.status(404).json({
+        error: "Item not found or you do not have permission to update it",
+      });
     }
 
     const updatedItem = await prisma.item.update({
@@ -185,12 +179,10 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
     res.json(updatedItem);
   } catch (error) {
     console.error("Error updating item:", error);
-    res
-      .status(500)
-      .json({
-        error: "Could not update item",
-        details: (error as Error).message,
-      });
+    res.status(500).json({
+      error: "Could not update item",
+      details: (error as Error).message,
+    });
   }
 };
 
@@ -217,17 +209,15 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     if (!existingItem) {
-      return res
-        .status(404)
-        .json({
-          error: "Item not found or you do not have permission to delete it",
-        });
+      return res.status(404).json({
+        error: "Item not found or you do not have permission to delete it",
+      });
     }
 
     await prisma.userItem.deleteMany({
       where: {
-        itemId: itemId
-      }
+        itemId: itemId,
+      },
     });
 
     await prisma.item.delete({
@@ -238,11 +228,9 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting item:", error);
-    res
-      .status(500)
-      .json({
-        error: "Could not delete item",
-        details: (error as Error).message,
-      });
+    res.status(500).json({
+      error: "Could not delete item",
+      details: (error as Error).message,
+    });
   }
 };

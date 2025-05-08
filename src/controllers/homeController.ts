@@ -55,12 +55,10 @@ export const createHome = async (req: AuthenticatedRequest, res: Response) => {
     //On vérifie si l'erreur capturée est une instance de Error
     if (error instanceof Error) {
       //Si c'est le cas, on envoie une réponse HTTP avec le statut 500 (Erreur interne du serveur) et un message d'erreur détaillant ce qui s'est mal passé.
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while creating the home",
-          details: error.message,
-        });
+      res.status(500).json({
+        error: "An error occurred while creating the home",
+        details: error.message,
+      });
       //Si l'erreur n'est pas une instance de  Error , on envoie une réponse générique indiquant qu'une erreur inconnue s'est produite.
     } else {
       res
@@ -143,12 +141,10 @@ export const getUserHomes = async (
     //Si cette erreur est une instance de Error
     if (error instanceof Error) {
       //On envoie une réponse avec le statut 500 (Erreur interne du serveur) et un message d'erreur le signalant.
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while fetching user homes",
-          details: error.message,
-        });
+      res.status(500).json({
+        error: "An error occurred while fetching user homes",
+        details: error.message,
+      });
       //Si l'erreur n'est pas une instance de  Error, on renvoie un message indiquant qu'une erreur inconnue s'est produite.
     } else {
       res

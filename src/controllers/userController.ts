@@ -20,11 +20,15 @@ export const registerUser = async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" },
+    );
 
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -69,9 +73,9 @@ export const loginUser = async (req: Request, res: Response) => {
     );
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
 
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -91,9 +95,9 @@ export const getCurrentUser = async (
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { 
-        id: true, 
-        name: true, 
+      select: {
+        id: true,
+        name: true,
         email: true,
         homes: {
           select: {
@@ -102,10 +106,10 @@ export const getCurrentUser = async (
               select: {
                 id: true,
                 name: true,
-                address: true
-              }
-            }
-          }
+                address: true,
+              },
+            },
+          },
         },
         items: {
           select: {
@@ -113,11 +117,11 @@ export const getCurrentUser = async (
               select: {
                 id: true,
                 name: true,
-                description: true
-              }
-            }
-          }
-        }
+                description: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -126,9 +130,19 @@ export const getCurrentUser = async (
     }
 
     res.status(200).json(user);
-  } catch (error: any) {
-    console.error('Error fetching current user:', error.message);
-    res.status(500).json({ error: 'An error occurred while fetching user data', details: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error fetching current user:", error.message);
+      res
+        .status(500)
+        .json({
+          error: "An error occurred while fetching user data",
+          details: error.message,
+        });
+    } else {
+      console.error("Unknown error:", error);
+      res.status(500).json({ error: "An unknown error occurred" });
+    }
   }
 };
 
@@ -158,12 +172,10 @@ export const changeUserName = async (
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error changing user name:", error);
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while changing the user name",
-          details: error.message,
-        });
+      res.status(500).json({
+        error: "An error occurred while changing the user name",
+        details: error.message,
+      });
     } else {
       console.error("Unknown error:", error);
       res.status(500).json({ error: "An unknown error occurred" });
@@ -369,15 +381,14 @@ export const deleteUserAccount = async (
 
 export const logoutUser = async (req: Request, res: Response) => {
   try {
-    res.clearCookie('token', {
+    res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(200).json({ message: 'Logged out successfully' });
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ error: 'An error occurred during logout' });
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "An error occurred during logout" });
   }
 };
-
