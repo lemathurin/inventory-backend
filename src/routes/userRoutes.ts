@@ -1,31 +1,40 @@
-import express from 'express';
-import { registerUser, loginUser, getAllUsers, changeUserName, changeUserEmail, changeUserPassword, getCurrentUser, deleteUserAccount } from '../controllers/userController';
-import { authenticateToken } from '../middleware/auth';
+import express from "express";
+import {
+  registerUser,
+  loginUser,
+  getAllUsers,
+  changeUserName,
+  changeUserEmail,
+  changeUserPassword,
+  getCurrentUser,
+  deleteUserAccount,
+} from "../controllers/userController";
+import { authenticateToken } from "../middleware/auth";
 
 const router = express.Router();
 
 // Register a new user
-router.post('/register', registerUser);
+router.post("/register", registerUser);
 
 // Login a user
-router.post('/login', loginUser);
+router.post("/login", loginUser);
 
 // Get all users
-router.get('/', getAllUsers);
+router.get("/", getAllUsers);
 
 // Change user name
-router.put('/change-name', authenticateToken, changeUserName);
+router.put("/change-name", authenticateToken, changeUserName);
 
 // Change user email
-router.put('/change-email', authenticateToken, changeUserEmail);
+router.put("/change-email", authenticateToken, changeUserEmail);
 
 // Change user password
-router.put('/change-password', authenticateToken, changeUserPassword);
+router.put("/change-password", authenticateToken, changeUserPassword);
 
 // Get current user data
-router.get('/me', authenticateToken, getCurrentUser);
+router.get("/me", authenticateToken, getCurrentUser);
 
 // Delete account
-router.delete('/delete-account', authenticateToken, deleteUserAccount);
+router.delete("/delete-account", authenticateToken, deleteUserAccount);
 
 export default router;
