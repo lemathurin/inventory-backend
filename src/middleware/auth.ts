@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
   user?: { userId: string };
@@ -50,7 +50,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
 
 export const generateToken = (userId: string): string => {
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, {
-    expiresIn: '1d',
+    expiresIn: "1d",
   });
 };
 
