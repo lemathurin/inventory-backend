@@ -1,4 +1,4 @@
-import express, { NextFunction } from "express";
+import express from "express";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import homeRoutes from "./routes/homeRoutes";
@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response) => {
   console.error("Error:", err.message);
   res.status(500).json({
     error: "Internal Server Error",
