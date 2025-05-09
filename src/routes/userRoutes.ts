@@ -8,6 +8,7 @@ import {
   changeUserPassword,
   getCurrentUser,
   deleteUserAccount,
+  logoutUser,
 } from "../controllers/userController";
 import { authenticateToken } from "../middleware/auth";
 
@@ -18,6 +19,9 @@ router.post("/register", registerUser);
 
 // Login a user
 router.post("/login", loginUser);
+
+// Logout a user
+router.post("/logout", logoutUser);
 
 // Get all users
 router.get("/", getAllUsers);

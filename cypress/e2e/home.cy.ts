@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 describe("Home API", () => {
-  it("GET /homes should return list of homes", () => {
-    cy.request("/api/homes").its("status").should("eq", 200);
+  it("GET /home should return list of homes", () => {
+    cy.request("/api/home").its("status").should("eq", 200);
   });
 });

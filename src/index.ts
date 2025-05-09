@@ -6,7 +6,7 @@ import userRoutes from "./routes/userRoutes";
 import itemRoutes from "./routes/itemRoutes";
 import dotenv from "dotenv";
 
-const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+const envPath = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 dotenv.config({ path: envPath });
 const app = express();
 const prisma = new PrismaClient({
@@ -49,9 +49,9 @@ app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
-app.use("/api/homes", homeRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/homes", itemRoutes);
+app.use("/api/home", homeRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/home", itemRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Home Inventory API" });

@@ -26,6 +26,12 @@ export const registerUser = async (req: Request, res: Response) => {
       { expiresIn: "1h" },
     );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     res.status(201).json({ token, id: user.id });
   } catch (error) {
     console.error("Registration error:", error);
@@ -67,6 +73,12 @@ export const loginUser = async (req: Request, res: Response) => {
     );
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({ token, id: user.id, homeId });
   } catch (error) {
     console.error("Login error:", error);
@@ -83,7 +95,34 @@ export const getCurrentUser = async (
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        homes: {
+          select: {
+            homeId: true,
+            home: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+              },
+            },
+          },
+        },
+        items: {
+          select: {
+            item: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -91,11 +130,19 @@ export const getCurrentUser = async (
     }
 
     res.status(200).json(user);
-  } catch (error) {
-    console.error("Error fetching current user:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching user data" });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error fetching current user:", error.message);
+      res
+        .status(500)
+        .json({
+          error: "An error occurred while fetching user data",
+          details: error.message,
+        });
+    } else {
+      console.error("Unknown error:", error);
+      res.status(500).json({ error: "An unknown error occurred" });
+    }
   }
 };
 
@@ -125,12 +172,10 @@ export const changeUserName = async (
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error changing user name:", error);
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while changing the user name",
-          details: error.message,
-        });
+      res.status(500).json({
+        error: "An error occurred while changing the user name",
+        details: error.message,
+      });
     } else {
       console.error("Unknown error:", error);
       res.status(500).json({ error: "An unknown error occurred" });
@@ -301,35 +346,13 @@ export const deleteUserAccount = async (
 
     // Start transaction to delete associated data
     await prisma.$transaction(async (prisma) => {
-      // 1. Delete UserItem relations
-      await prisma.userItem.deleteMany({
-        where: { userId: userId },
-      });
+      // Delete associated items
+      await prisma.userItem.deleteMany({ where: { userId } });
+      await prisma.item.deleteMany({ where: { users: { some: { userId } } } });
 
-      // 2. Find items created by this user (if applicable via relation)
-      const userItems = await prisma.userItem.findMany({
-        where: { userId: userId },
-        select: { itemId: true },
-      });
-
-      const itemIds = userItems.map((i) => i.itemId);
-
-      // 3. Delete those items
-      if (itemIds.length > 0) {
-        await prisma.item.deleteMany({
-          where: { id: { in: itemIds } },
-        });
-      }
-
-      // 4. Delete UserHome relations
-      await prisma.userHome.deleteMany({
-        where: { userId: userId },
-      });
-
-      // 5. Delete UserRoom relations
-      await prisma.userRoom.deleteMany({
-        where: { userId: userId },
-      });
+      // Delete associated homes
+      await prisma.userHome.deleteMany({ where: { userId } });
+      await prisma.home.deleteMany({ where: { users: { some: { userId } } } });
 
       // 6. Finally, delete the user
       await prisma.user.delete({
@@ -353,5 +376,19 @@ export const deleteUserAccount = async (
         details: "Unknown error",
       });
     }
+  }
+};
+
+export const logoutUser = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "An error occurred during logout" });
   }
 };

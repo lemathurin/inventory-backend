@@ -17,7 +17,7 @@ router.get("/", authenticateToken, getAllItems);
 router.get("/:homeId/items", authenticateToken, getItemsByHome);
 
 // Create a new item for a specific home
-router.post("/:homeId/items", authenticateToken, createItem);
+router.post("/:homeId/item", authenticateToken, createItem);
 
 // Update an existing item
 router.put("/:homeId/items/:itemId", authenticateToken, updateItem);
