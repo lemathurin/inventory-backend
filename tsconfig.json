@@ -8,11 +8,13 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./",
+    "types": ["jest", "node"],
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
-    }
+      "@/*": ["src/*"],
+      "src/*": ["src/*"]
+    },
   },
-  "include": ["src/**/*", "cypress.config.ts"],
+  "include": ["src/**/*", "cypress.config.ts", "types", "jest.d.ts", "tests/**/*", "__mocks__"],
   "exclude": ["node_modules"]
 }
