@@ -72,6 +72,7 @@ export const loginUser = async (req: Request, res: Response) => {
       { expiresIn: "1d" },
     );
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
+    const hasHome = user.homes.length > 0;
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -79,7 +80,7 @@ export const loginUser = async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ token, id: user.id, homeId });
+    res.status(200).json({ token, id: user.id, homeId, hasHome });
   } catch (error) {
     console.error("Login error:", error);
     res.status(401).json({ error: "Invalid credentials" });
