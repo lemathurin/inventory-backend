@@ -1,22 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
-
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+import * as itemModel from "../models/itemModel";
 
 export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const items = await prisma.item.findMany({
-      where: {
-        users: {
-          some: {
-            userId: req.user!.userId,
-          },
-        },
-      },
-    });
+    const items = await itemModel.findItemsByUserId(req.user!.userId);
     res.json(items);
   } catch (error) {
     console.error(error);
@@ -32,16 +20,8 @@ export const getItemsByHome = async (
     const homeId = String(req.params.homeId);
     console.log("Fetching items for homeId:", homeId);
 
-    const home = await prisma.home.findFirst({
-      where: {
-        id: homeId,
-        users: {
-          some: {
-            userId: req.user!.userId,
-          },
-        },
-      },
-    });
+    // Check if home exists and user has access to it
+    const home = await itemModel.findHomeByIdAndUserId(homeId, req.user!.userId);
 
     if (!home) {
       return res.status(404).json({
@@ -49,16 +29,8 @@ export const getItemsByHome = async (
       });
     }
 
-    const items = await prisma.item.findMany({
-      where: {
-        homeId: homeId,
-        users: {
-          some: {
-            userId: req.user!.userId,
-          },
-        },
-      },
-    });
+    // Get items for this home that the user has access to
+    const items = await itemModel.findItemsByHomeAndUserId(homeId, req.user!.userId);
 
     console.log("Items found:", items.length);
     res.json(items);
@@ -67,41 +39,6 @@ export const getItemsByHome = async (
     res.status(500).json({ error: "Could not fetch items" });
   }
 };
-
-// Requête à retravailler
-// export const getUserItemsByHome = async (req: AuthenticatedRequest, res: Response) => {
-//   try {
-//     const homeId = String(req.params.homeId);
-//     console.log('Fetching items for homeId:', homeId);
-
-//     const home = await prisma.home.findFirst({
-//       where: {
-//         id: homeId,
-//         users: {
-//           some: {
-//             userId: req.user!.userId
-//           }
-//         }
-//       }
-//     });
-
-//     if (!home) {
-//       return res.status(404).json({ error: 'Home not found or you do not have permission to access it' });
-//     }
-
-//     const items = await prisma.item.findMany({
-//       where: {
-//         homeId: homeId,
-//       }
-//     });
-
-//     console.log('Items found:', items.length);
-//     res.json(items);
-//   } catch (error) {
-//     console.error('Error fetching items:', error);
-//     res.status(500).json({ error: 'Could not fetch items' });
-//   }
-// };
 
 export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -115,19 +52,12 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
       userId: req.user!.userId,
     });
 
-    const item = await prisma.item.create({
-      data: {
-        name,
-        description,
-        homeId: homeId,
-        users: {
-          create: {
-            userId: req.user!.userId,
-            admin: true,
-          },
-        },
-      },
-    });
+    const item = await itemModel.createNewItem(
+      name, 
+      description, 
+      homeId, 
+      req.user!.userId
+    );
 
     console.log("Item created:", item);
     res.status(201).json(item);
@@ -147,17 +77,12 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
 
     console.log("Updating item:", { itemId, ...req.body });
 
-    const existingItem = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        homeId: req.params.homeId,
-        users: {
-          some: {
-            userId: req.user!.userId,
-          },
-        },
-      },
-    });
+    // Check if item exists and user has permission to update it
+    const existingItem = await itemModel.findItemByIdAndHomeIdAndUserId(
+      itemId,
+      req.params.homeId,
+      req.user!.userId
+    );
 
     if (!existingItem) {
       return res.status(404).json({
@@ -165,15 +90,16 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    const updatedItem = await prisma.item.update({
-      where: { id: itemId },
-      data: {
-        name,
-        description,
-        purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-        price: price !== undefined ? parseFloat(price as string) : null,
-      },
-    });
+    // Prepare update data
+    const updateData = {
+      name,
+      description,
+      purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
+      price: price !== undefined ? parseFloat(price as string) : null,
+    };
+
+    // Update the item
+    const updatedItem = await itemModel.updateItemById(itemId, updateData);
 
     console.log("Item updated:", updatedItem);
     res.json(updatedItem);
@@ -196,17 +122,12 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
       userId: req.user!.userId,
     });
 
-    const existingItem = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        homeId: homeId,
-        users: {
-          some: {
-            userId: req.user!.userId,
-          },
-        },
-      },
-    });
+    // Check if item exists and user has permission to delete it
+    const existingItem = await itemModel.findItemByIdAndHomeIdAndUserId(
+      itemId,
+      homeId,
+      req.user!.userId
+    );
 
     if (!existingItem) {
       return res.status(404).json({
@@ -214,15 +135,8 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    await prisma.userItem.deleteMany({
-      where: {
-        itemId: itemId,
-      },
-    });
-
-    await prisma.item.delete({
-      where: { id: itemId },
-    });
+    // Delete the item and its associations
+    await itemModel.deleteItemById(itemId);
 
     console.log("Item deleted successfully:", itemId);
     res.status(204).send();
