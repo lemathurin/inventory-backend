@@ -43,10 +43,11 @@ export const findItemsByHomeAndUserId = async (homeId: string, userId: string) =
 };
 
 export const createNewItem = async (
-  name: string, 
-  description: string, 
-  homeId: string, 
-  userId: string
+  name: string,
+  description: string,
+  homeId: string,
+  userId: string,
+  roomId?: string,
 ) => {
   return prisma.item.create({
     data: {
@@ -59,6 +60,13 @@ export const createNewItem = async (
           admin: true,
         },
       },
+      ...(roomId && {
+        rooms: {
+          connect: {
+            id: roomId,
+          },
+        },
+      }),
     },
   });
 };
