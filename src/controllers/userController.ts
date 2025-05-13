@@ -1,24 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
-
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+import * as userModel from "../models/userModel";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { email, password, name } = req.body;
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: await bcrypt.hash(password, 10),
-        name,
-      },
-    });
+    const user = await userModel.createUser(email, password, name);
 
     const token = jwt.sign(
       { userId: user.id },
@@ -28,7 +17,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -43,25 +32,13 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        homes: {
-          select: {
-            homeId: true,
-            home: {
-              select: { id: true },
-            },
-          },
-        },
-      },
-    });
+    const user = await userModel.findUserByEmail(email);
 
     if (!user) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword = await userModel.verifyPassword(password, user.password);
     if (!validPassword) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
@@ -93,38 +70,8 @@ export const getCurrentUser = async (
 ) => {
   try {
     const { userId } = req.user as { userId: string };
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        homes: {
-          select: {
-            homeId: true,
-            home: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
-              },
-            },
-          },
-        },
-        items: {
-          select: {
-            item: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    
+    const user = await userModel.findUserById(userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -134,12 +81,10 @@ export const getCurrentUser = async (
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error fetching current user:", error.message);
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while fetching user data",
-          details: error.message,
-        });
+      res.status(500).json({
+        error: "An error occurred while fetching user data",
+        details: error.message,
+      });
     } else {
       console.error("Unknown error:", error);
       res.status(500).json({ error: "An unknown error occurred" });
@@ -147,7 +92,6 @@ export const getCurrentUser = async (
   }
 };
 
-// NOTE: Add a check to ensure that the name is different from the current name
 export const changeUserName = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -162,11 +106,7 @@ export const changeUserName = async (
       return res.status(400).json({ error: "Invalid name provided" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { name: newName },
-      select: { id: true, name: true, email: true },
-    });
+    const updatedUser = await userModel.updateUserName(userId, newName);
 
     console.log("User updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
@@ -194,23 +134,17 @@ export const changeUserEmail = async (
 
     console.log("Received request to change email:", { userId, newEmail });
 
-    if (!newEmail || typeof newEmail !== "string" || !isValidEmail(newEmail)) {
+    if (!newEmail || typeof newEmail !== "string" || !userModel.isValidEmail(newEmail)) {
       return res.status(400).json({ error: "Invalid email provided" });
     }
 
     // Check if the new email is already in use
-    const existingUser = await prisma.user.findUnique({
-      where: { email: newEmail },
-    });
+    const existingUser = await userModel.findUserByEmail(newEmail);
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { email: newEmail },
-      select: { id: true, name: true, email: true },
-    });
+    const updatedUser = await userModel.updateUserEmail(userId, newEmail);
 
     console.log("User email updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
@@ -231,24 +165,9 @@ export const changeUserEmail = async (
   }
 };
 
-// Helper function to validate email format
-function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        homes: true,
-        items: true,
-      },
-    });
-
+    const users = await userModel.getAllUsersWithDetails();
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -276,29 +195,23 @@ export const changeUserPassword = async (
     }
 
     // Fetch the user with their current password
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await userModel.findUserByEmail(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Verify the current password
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await userModel.verifyPassword(
       currentPassword,
-      user.password,
+      user.password
     );
+    
     if (!isPasswordValid) {
       return res.status(400).json({ error: "Current password is incorrect" });
     }
 
-    // Hash the new password
-    // const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
     // Update the user's password
-    // const updatedUser = await prisma.user.update({
-    //   where: { id: userId },
-    //   data: { password: hashedNewPassword },
-    //   select: { id: true, name: true, email: true },
-    // });
+    await userModel.updateUserPassword(userId, newPassword);
 
     console.log("User password updated successfully");
     res.status(200).json({ message: "Password updated successfully" });
@@ -334,32 +247,18 @@ export const deleteUserAccount = async (
     }
 
     // Fetch the user
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await userModel.findUserByEmail(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await userModel.verifyPassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ error: "Incorrect password" });
     }
 
-    // Start transaction to delete associated data
-    await prisma.$transaction(async (prisma) => {
-      // Delete associated items
-      await prisma.userItem.deleteMany({ where: { userId } });
-      await prisma.item.deleteMany({ where: { users: { some: { userId } } } });
-
-      // Delete associated homes
-      await prisma.userHome.deleteMany({ where: { userId } });
-      await prisma.home.deleteMany({ where: { users: { some: { userId } } } });
-
-      // 6. Finally, delete the user
-      await prisma.user.delete({
-        where: { id: userId },
-      });
-    });
+    await userModel.deleteUser(userId);
 
     console.log("User account and associated data deleted successfully");
     res.status(200).json({ message: "Account deleted successfully" });
