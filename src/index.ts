@@ -4,6 +4,7 @@ import cors from "cors";
 import homeRoutes from "./routes/homeRoutes";
 import userRoutes from "./routes/userRoutes";
 import itemRoutes from "./routes/itemRoutes";
+import roomRoutes from "./routes/roomRoutes";
 import dotenv from "dotenv";
 
 const envPath = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
@@ -52,6 +53,7 @@ const PORT = parseInt(process.env.PORT || "4000", 10);
 app.use("/api/home", homeRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/home", itemRoutes);
+app.use("/api", roomRoutes)
 
 app.get("/", (req, res) => {
   res.json({ message: "Home Inventory API" });
