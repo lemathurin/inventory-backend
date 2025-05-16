@@ -11,26 +11,28 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique @db.VarChar(254)
-  name      String     @db.VarChar(50)
-  password  String     @db.VarChar(254)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  homes     UserHome[]
-  rooms     UserRoom[]
-  items     UserItem[]
+  id         String       @id @default(uuid())
+  email      String       @unique @db.VarChar(254)
+  name       String       @db.VarChar(50)
+  password   String       @db.VarChar(254)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  homes      UserHome[]
+  rooms      UserRoom[]
+  items      UserItem[]
+  HomeInvite HomeInvite[]
 }
 
 model Home {
-  id        String     @id @default(uuid())
-  name      String     @db.VarChar(100)
-  address   String     @db.VarChar(254)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  users     UserHome[]
-  rooms     Room[]
-  items     Item[]
+  id         String       @id @default(uuid())
+  name       String       @db.VarChar(100)
+  address    String       @db.VarChar(254)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  users      UserHome[]
+  rooms      Room[]
+  items      Item[]
+  HomeInvite HomeInvite[]
 }
 
 model Room {
@@ -105,4 +107,18 @@ model UserItem {
   updatedAt DateTime @updatedAt
 
   @@id([userId, itemId])
+}
+
+model HomeInvite {
+  id        String    @id @default(uuid())
+  code      String    @unique @db.VarChar(50)
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  home      Home      @relation(fields: [homeId], references: [id])
+  homeId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+
+  @@unique([userId, homeId])
 }
