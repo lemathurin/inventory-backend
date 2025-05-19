@@ -22,12 +22,12 @@ export const createRoomInHome = async (req: Request, res: Response) => {
     const newRoom = await prisma.room.create({
       data: {
         name,
-        home: {
+        homes: {
           connect: { id: homeId },
         },
       },
       include: {
-        home: true,
+        homes: true,
       },
     });
     res.status(201).json(newRoom);
@@ -44,7 +44,7 @@ export const getRoomDetails = async (req: Request, res: Response) => {
     const room = await prisma.room.findUnique({
       where: { id: roomId },
       include: {
-        home: true,       // Include the home it belongs to
+        homes: true,       // Include the home it belongs to
         items: true,      // Include items in the room
         users: {          // Include users associated with the room and their roles
           select: {
