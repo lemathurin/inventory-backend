@@ -1,4 +1,3 @@
-// src/routes/index.ts
 import { Router } from "express";
 import homesRouter from "./homeRoutes";
 import itemsRouter from "./itemRoutes";
