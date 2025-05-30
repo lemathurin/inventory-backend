@@ -1,26 +1,33 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   createRoomInHome,
   getRoomDetails,
-//   updateRoom,
-//   deleteRoom,
-} from '../controllers/roomController';
+  //   updateRoom,
+  //   deleteRoom,
+} from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 
 const router = Router();
 
 // Create a new room in a specific home
-router.post('/home/:homeId/room', authenticateToken, createRoomInHome);
+router.post("/:homeId/room", authenticateToken, createRoomInHome);
 
 // Get a room's details
-router.get('/room/:roomId', authenticateToken, getRoomDetails);
+router.get("/:roomId", authenticateToken, getRoomDetails);
 
 // Update a room's settings
-// PUT /api/rooms/:roomId
-// router.put('/rooms/:roomId', /*isAuthenticated,*/ updateRoom);
+// router.put("/:roomId", authenticateToken, updateRoom);
 
 // Delete a room
-// DELETE /api/rooms/:roomId
-// router.delete('/rooms/:roomId', /*isAuthenticated,*/ deleteRoom);
+// router.delete("/:roomId", authenticateToken, deleteRoom);
+
+// Get users in room
+// router.get("/:roomId/users", authenticateToken, )
+
+// Add a user to a room
+// router.post("/:roomId/users", authenticateToken, )
+
+// Remove a user from a room
+// router.delete("/:roomId/users/:userId", authenticateToken, )
 
 export default router;

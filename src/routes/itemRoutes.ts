@@ -11,18 +11,18 @@ import {
 const router = express.Router();
 
 // Get all items for the authenticated user
-router.get("/", authenticateToken, getAllItems);
-
-// Get all items for a specific home
-router.get("/:homeId/items", authenticateToken, getItemsByHome);
+// router.get("/", authenticateToken, getAllItems);
 
 // Create a new item for a specific home
 router.post("/:homeId/item", authenticateToken, createItem);
 
+// Get item information
+// router.get("/:itemId", authenticateToken, );
+
 // Update an existing item
-router.put("/:homeId/items/:itemId", authenticateToken, updateItem);
+// router.put("/:itemId", authenticateToken, updateItem);
 
 // Delete an existing item
-router.delete("/:homeId/items/:itemId", authenticateToken, deleteItem);
+// router.delete("/:itemId", authenticateToken, deleteItem);
 
 export default router;
