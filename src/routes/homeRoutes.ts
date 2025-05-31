@@ -5,6 +5,7 @@ import {
   getHomeById,
   updateHome,
   deleteHome,
+  getRoomsByHomeId,
 } from "../controllers/homeController";
 
 const router = express.Router();
@@ -22,7 +23,7 @@ router.patch("/:homeId", authenticateToken, updateHome);
 router.delete("/:homeId", authenticateToken, deleteHome);
 
 // Get all rooms of a home
-// router.get("/:homeId/rooms", authenticateToken, )
+router.get("/:homeId/rooms", authenticateToken, getRoomsByHomeId);
 
 // Get all items of a home
 // router.get("/:homeId/items", authenticateToken, )

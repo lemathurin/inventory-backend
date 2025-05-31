@@ -33,7 +33,7 @@ export const findAllHomes = async () => {
 export const findHomeById = async (id: string) => {
   return prisma.home.findUnique({
     where: { id: String(id) },
-    include: { users: true, items: true },
+    include: { users: true, rooms: true, items: true },
   });
 };
 
@@ -49,6 +49,16 @@ export const findHomesByUserId = async (userId: string) => {
     include: {
       users: true,
       items: true,
+    },
+  });
+};
+
+export const findRoomsByHomeId = async (homeId: string) => {
+  return prisma.room.findMany({
+    where: { homeId: String(homeId) },
+    include: {
+      items: true,
+      users: true,
     },
   });
 };

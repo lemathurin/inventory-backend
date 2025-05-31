@@ -93,6 +93,30 @@ export const getUserHomes = async (
   }
 };
 
+export const getRoomsByHomeId = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId } = req.params;
+    const rooms = await homeModel.findRoomsByHomeId(homeId);
+
+    res.status(200).json(rooms);
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "An error occurred while fetching rooms",
+        details: error.message,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred while fetching rooms" });
+    }
+  }
+};
+
 export const updateHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { homeId } = req.params;
