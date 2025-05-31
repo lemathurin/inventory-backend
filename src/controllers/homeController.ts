@@ -180,3 +180,39 @@ export const deleteHome = async (req: AuthenticatedRequest, res: Response) => {
     }
   }
 };
+
+export const createHomeInvite = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId } = req.params;
+    const { expiresInHours } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Calculate expiration (if provided)
+    const expiresAt = expiresInHours
+      ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000)
+      : undefined;
+
+    const invite = await homeModel.createHomeInvite(homeId, userId, expiresAt);
+
+    res.status(201).json({
+      message: "Invite created successfully",
+      invite: {
+        code: invite.code,
+        expiresAt: invite.expiresAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating invite:", error);
+    res.status(500).json({
+      error: "Failed to create invite",
+      details: (error as Error).message,
+    });
+  }
+};

@@ -14,13 +14,13 @@ const router = express.Router();
 router.get("/me", authenticateToken, getCurrentUser);
 
 // Change user name
-router.put("/me/name", authenticateToken, changeUserName);
+router.patch("/me/name", authenticateToken, changeUserName);
 
 // Change user email
-router.put("/me/email", authenticateToken, changeUserEmail);
+router.patch("/me/email", authenticateToken, changeUserEmail);
 
 // Change user password
-router.put("/me/password", authenticateToken, changeUserPassword);
+router.patch("/me/password", authenticateToken, changeUserPassword);
 
 // Delete account
 router.delete("/me", authenticateToken, deleteUserAccount);

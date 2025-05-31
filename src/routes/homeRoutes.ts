@@ -6,7 +6,9 @@ import {
   updateHome,
   deleteHome,
   getRoomsByHomeId,
+  createHomeInvite,
 } from "../controllers/homeController";
+import { requireHomeAdmin } from "@/middleware/permissions";
 
 const router = express.Router();
 
@@ -40,7 +42,12 @@ router.get("/:homeId/rooms", authenticateToken, getRoomsByHomeId);
 // Invite routes
 
 // Create a new invite for a home
-// router.post("/:homeId/invites", authenticateToken, )
+router.post(
+  "/:homeId/invites",
+  authenticateToken,
+  requireHomeAdmin,
+  createHomeInvite
+);
 
 // List all invites for a home
 // router.get("/:homeId/invites", authenticateToken, )

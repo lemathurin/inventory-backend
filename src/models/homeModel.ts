@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { generateInviteCode } from "../utils/inviteCodes";
 
 const prisma = new PrismaClient({
   log: ["query", "info", "warn", "error"],
@@ -87,5 +88,29 @@ export const deleteHomeById = async (id: string) => {
 
   return prisma.home.delete({
     where: { id: String(id) },
+  });
+};
+
+export const createHomeInvite = async (
+  homeId: string,
+  userId: string,
+  expiresAt?: Date
+) => {
+  let code: string;
+  let attempts = 0;
+
+  do {
+    code = generateInviteCode();
+    attempts++;
+    if (attempts > 5) throw new Error("Failed to generate unique invite code");
+  } while (await prisma.homeInvite.findUnique({ where: { code } }));
+
+  return prisma.homeInvite.create({
+    data: {
+      code,
+      homeId,
+      userId,
+      expiresAt,
+    },
   });
 };
