@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
 import * as homeModel from "../models/homeModel";
+import { validateInviteCode } from "@/utils/inviteCodes";
 
 export const createHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -265,6 +266,65 @@ export const deleteHomeInvite = async (
     console.error("Error deleting invite:", error);
     res.status(500).json({
       error: "Failed to delete invite",
+      details: (error as Error).message,
+    });
+  }
+};
+
+export const acceptHomeInvite = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { code } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Validate the invite code format
+    if (!validateInviteCode(code)) {
+      return res.status(400).json({ error: "Invalid invite code format" });
+    }
+
+    // Find the invite
+    const invite = await homeModel.findInviteByCode(code);
+    if (!invite) {
+      return res.status(404).json({ error: "Invite not found or expired" });
+    }
+
+    // Check if the invite is expired
+    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      return res.status(400).json({ error: "Invite has expired" });
+    }
+
+    // Check if the user is already a member of the home
+    const existingMembership = await homeModel.findUserHomeMembership(
+      userId,
+      invite.homeId
+    );
+
+    if (existingMembership) {
+      return res
+        .status(400)
+        .json({ error: "User is already a member of this home" });
+    }
+
+    // Add the user to the home (non-admin by default)
+    await homeModel.addUserToHome(invite.homeId, userId);
+
+    // Delete the invite (optional, to prevent reuse)
+    // await homeModel.deleteHomeInvite(invite.id);
+
+    res.status(200).json({
+      message: "Invite accepted successfully",
+      home: { id: invite.homeId, name: invite.home.name },
+    });
+  } catch (error) {
+    console.error("Error accepting invite:", error);
+    res.status(500).json({
+      error: "Failed to accept invite",
       details: (error as Error).message,
     });
   }

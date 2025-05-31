@@ -130,3 +130,33 @@ export const deleteHomeInvite = async (inviteId: string) => {
     where: { id: inviteId },
   });
 };
+
+export const findInviteByCode = async (code: string) => {
+  return prisma.homeInvite.findUnique({
+    where: { code },
+    include: { home: true },
+  });
+};
+
+export const addUserToHome = async (
+  homeId: string,
+  userId: string,
+  admin: boolean = false
+) => {
+  return prisma.userHome.create({
+    data: {
+      homeId,
+      userId,
+      admin,
+    },
+  });
+};
+
+export const findUserHomeMembership = async (
+  userId: string,
+  homeId: string
+) => {
+  return prisma.userHome.findFirst({
+    where: { userId, homeId },
+  });
+};

@@ -9,6 +9,7 @@ import {
   createHomeInvite,
   getHomeInvites,
   deleteHomeInvite,
+  acceptHomeInvite,
 } from "../controllers/homeController";
 import { requireHomeAdmin } from "@/middleware/permissions";
 
@@ -21,10 +22,10 @@ router.post("/", authenticateToken, createHome);
 router.get("/:homeId", authenticateToken, getHomeById);
 
 // Update a specific home
-router.patch("/:homeId", authenticateToken, updateHome);
+router.patch("/:homeId", authenticateToken, requireHomeAdmin, updateHome);
 
 // Delete a specific home
-router.delete("/:homeId", authenticateToken, deleteHome);
+router.delete("/:homeId", authenticateToken, requireHomeAdmin, deleteHome);
 
 // Get all rooms of a home
 router.get("/:homeId/rooms", authenticateToken, getRoomsByHomeId);
@@ -68,6 +69,6 @@ router.delete(
 );
 
 // Accept an invite
-// router.post("/invites/accept", )
+router.post("/invites/accept", authenticateToken, acceptHomeInvite);
 
 export default router;
