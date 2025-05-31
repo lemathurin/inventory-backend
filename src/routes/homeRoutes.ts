@@ -2,9 +2,8 @@ import express from "express";
 import { authenticateToken } from "../middleware/auth";
 import {
   createHome,
-  getAllHomes,
   getHomeById,
-  getUserHomes,
+  deleteHome,
 } from "../controllers/homeController";
 
 const router = express.Router();
@@ -19,7 +18,7 @@ router.get("/:homeId", authenticateToken, getHomeById);
 // router.put("/:homeId", authenticateToken, )
 
 // Delete a specific home
-// router.delete("/:homeId", authenticateToken, )
+router.delete("/:homeId", authenticateToken, deleteHome);
 
 // Get all rooms of a home
 // router.get("/:homeId/rooms", authenticateToken, )

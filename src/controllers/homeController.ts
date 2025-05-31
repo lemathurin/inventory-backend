@@ -15,7 +15,7 @@ export const createHome = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const home = await homeModel.createNewHome(name, address, userId);
-    
+
     res.status(201).json({
       message: "Home created successfully",
       home: {
@@ -50,9 +50,10 @@ export const getAllHomes = async (req: Request, res: Response) => {
 
 export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
-    const home = await homeModel.findHomeById(id);
-    
+    const { homeId } = req.params;
+    console.log("Fetching home with ID:", homeId);
+    const home = await homeModel.findHomeById(homeId);
+
     if (home) {
       res.json(home);
     } else {
@@ -66,16 +67,16 @@ export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
 
 export const getUserHomes = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }
-    
+
     const userHomes = await homeModel.findHomesByUserId(userId);
-    
+
     res.json(userHomes);
   } catch (error) {
     console.error("Error fetching user homes:", error);
@@ -88,6 +89,37 @@ export const getUserHomes = async (
       res
         .status(500)
         .json({ error: "An unknown error occurred while fetching user homes" });
+    }
+  }
+};
+
+export const deleteHome = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { homeId } = req.params;
+    const home = await homeModel.findHomeById(homeId);
+
+    if (!home) {
+      return res.status(404).json({ error: "Home not found" });
+    }
+
+    // NOTE: Temporary - if a home has items, it cannot be deleted
+    if (home.items && home.items.length > 0) {
+      return res.status(400).json({ error: "Cannot delete home with items" });
+    }
+
+    await homeModel.deleteHomeById(homeId);
+    res.status(200).json({ message: "Home deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting home", error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "An error occurred while deleting the home",
+        details: error.message,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred while deleting the home" });
     }
   }
 };

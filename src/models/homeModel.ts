@@ -4,7 +4,11 @@ const prisma = new PrismaClient({
   log: ["query", "info", "warn", "error"],
 });
 
-export const createNewHome = async (name: string, address: string, userId: string) => {
+export const createNewHome = async (
+  name: string,
+  address: string,
+  userId: string
+) => {
   return prisma.home.create({
     data: {
       name,
@@ -46,5 +50,15 @@ export const findHomesByUserId = async (userId: string) => {
       users: true,
       items: true,
     },
+  });
+};
+
+export const deleteHomeById = async (id: string) => {
+  await prisma.userHome.deleteMany({
+    where: { homeId: id },
+  });
+
+  return prisma.home.delete({
+    where: { id: String(id) },
   });
 };
