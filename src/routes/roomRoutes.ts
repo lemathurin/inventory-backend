@@ -4,6 +4,7 @@ import {
   getRoomDetails,
   updateRoom,
   deleteRoom,
+  getRoomUsers,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 import { requireRoomAdmin } from "@/middleware/permissions";
@@ -22,8 +23,8 @@ router.patch("/:roomId", authenticateToken, requireRoomAdmin, updateRoom);
 // Delete a room
 router.delete("/:roomId", authenticateToken, requireRoomAdmin, deleteRoom);
 
-// Get users in room
-// router.get("/:roomId/users", authenticateToken, )
+// Get all users in a room
+router.get("/:roomId/users", authenticateToken, getRoomUsers);
 
 // Add a user to a room
 // router.post("/:roomId/users", authenticateToken, )

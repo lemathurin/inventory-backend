@@ -96,3 +96,28 @@ export const deleteRoom = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getRoomUsers = async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const room = await roomModel.getRoomUsers(roomId);
+
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Extract and format user data
+    const users = room.users.map((userRoom) => ({
+      ...userRoom.user,
+      isAdmin: userRoom.admin,
+    }));
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching room users:", error);
+    res.status(500).json({
+      error: "Failed to fetch room users",
+      details: (error as Error).message,
+    });
+  }
+};

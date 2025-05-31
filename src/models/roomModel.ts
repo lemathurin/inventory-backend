@@ -58,3 +58,16 @@ export const deleteRoomById = async (roomId: string) => {
 
   return prisma.room.delete({ where: { id: roomId } });
 };
+
+export const getRoomUsers = async (roomId: string) => {
+  return prisma.room.findUnique({
+    where: { id: roomId },
+    include: {
+      users: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+    },
+  });
+};
