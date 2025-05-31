@@ -4,7 +4,9 @@ import {
   getAllUserItems,
   createItem,
   getItem,
+  updateItem,
 } from "../controllers/itemController";
+import { requireItemAdmin } from "../middleware/permissions";
 
 const router = express.Router();
 
@@ -18,7 +20,7 @@ router.post("/:homeId/item", authenticateToken, createItem);
 router.get("/:itemId", authenticateToken, getItem);
 
 // Update an existing item
-// router.put("/:itemId", authenticateToken, updateItem);
+router.patch("/:itemId", authenticateToken, requireItemAdmin, updateItem);
 
 // Delete an existing item
 // router.delete("/:itemId", authenticateToken, deleteItem);

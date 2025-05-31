@@ -95,3 +95,42 @@ export const findItemByIdAndUserId = async (itemId: string, userId: string) => {
     },
   });
 };
+
+export const updateItem = async (
+  itemId: string,
+  data: {
+    name?: string;
+    description?: string;
+    roomId?: string | null;
+    public?: boolean;
+    purchaseDate?: Date | null;
+    price?: number | null;
+    hasWarranty?: boolean;
+    warrantyType?: string | null;
+    warrantyLength?: number | null;
+  }
+) => {
+  return prisma.item.update({
+    where: { id: itemId },
+    data: {
+      name: data.name,
+      description: data.description,
+      public: data.public,
+      purchaseDate: data.purchaseDate,
+      price: data.price,
+      hasWarranty: data.hasWarranty,
+      warrantyType: data.warrantyType,
+      warrantyLength: data.warrantyLength,
+      rooms: data.roomId
+        ? { connect: { id: data.roomId } }
+        : data.roomId === null
+          ? { set: [] }
+          : undefined,
+    },
+    include: {
+      Home: true,
+      rooms: true,
+      users: true,
+    },
+  });
+};

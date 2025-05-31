@@ -105,3 +105,65 @@ export const getItem = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
+
+export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    } = req.body;
+
+    // Validate at least one field is provided
+    const hasUpdates = [
+      name,
+      description,
+      roomId,
+      isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    ].some((field) => field !== undefined);
+
+    if (!hasUpdates) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    // Convert string dates to Date objects
+    const parsedPurchaseDate = purchaseDate
+      ? new Date(purchaseDate)
+      : undefined;
+
+    const updatedItem = await itemModel.updateItem(itemId, {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate: parsedPurchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    });
+
+    res.status(200).json({
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({
+      error: "Failed to update item",
+      details: (error as Error).message,
+    });
+  }
+};
