@@ -6,6 +6,7 @@ import {
   //   deleteRoom,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
+import { requireRoomAdmin } from "@/middleware/permissions";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.post("/:homeId/room", authenticateToken, createRoomInHome);
 router.get("/:roomId", authenticateToken, getRoomDetails);
 
 // Update a room's name
-router.patch("/:roomId", authenticateToken, updateRoom);
+router.patch("/:roomId", authenticateToken, requireRoomAdmin, updateRoom);
 
 // Update a room's settings
 // router.patch("/:roomId", authenticateToken, updateRoom);

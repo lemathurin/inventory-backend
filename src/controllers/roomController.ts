@@ -54,18 +54,9 @@ export const updateRoom = async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
     const { name } = req.body;
-    const userId = (req as any).user?.userId;
 
     if (!name) {
       return res.status(400).json({ error: "Room name is required" });
-    }
-
-    // Check if user is an admin of the room
-    const isAdmin = await roomModel.isUserRoomAdmin(roomId, userId);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: "Only room admins can update the room" });
     }
 
     const updatedRoom = await roomModel.updateRoomName(roomId, name);

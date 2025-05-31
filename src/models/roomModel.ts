@@ -42,17 +42,6 @@ export const getRoomDetails = async (roomId: string) => {
   });
 };
 
-export const isUserRoomAdmin = async (roomId: string, userId: string) => {
-  const userRoom = await prisma.userRoom.findFirst({
-    where: {
-      roomId,
-      userId,
-      admin: true,
-    },
-  });
-  return !!userRoom;
-};
-
 export const updateRoomName = async (roomId: string, name: string) => {
   return prisma.room.update({
     where: { id: roomId },
