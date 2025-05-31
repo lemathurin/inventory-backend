@@ -36,20 +36,7 @@ export const createRoomInHome = async (req: Request, res: Response) => {
 export const getRoomDetails = async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
-      include: {
-        homes: true, // Include the home it belongs to
-        items: true, // Include items in the room
-        users: {
-          // Include users associated with the room and their roles
-          select: {
-            user: { select: { id: true, name: true, email: true } },
-            admin: true,
-          },
-        },
-      },
-    });
+    const room = await roomModel.getRoomDetails(roomId);
 
     if (!room) {
       return res.status(404).json({ error: "Room not found" });

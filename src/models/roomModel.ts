@@ -26,3 +26,18 @@ export const createRoom = async (
     },
   });
 };
+
+export const getRoomDetails = async (roomId: string) => {
+  return prisma.room.findUnique({
+    where: { id: roomId },
+    include: {
+      home: true,
+      items: true,
+      users: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
+  });
+};
