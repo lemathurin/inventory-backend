@@ -50,17 +50,17 @@ app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
-app.use("/api/home", homeRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/home", itemRoutes);
-app.use("/api", roomRoutes)
+app.use("/api/homes", homeRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/homes", itemRoutes);
+app.use("/api/rooms", roomRoutes)
 
 app.get("/", (req, res) => {
   res.json({ message: "Home Inventory API" });
 });
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response) => {
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("Error:", err.message);
   res.status(500).json({
     error: "Internal Server Error",
