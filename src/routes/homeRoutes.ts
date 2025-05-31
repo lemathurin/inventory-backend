@@ -8,6 +8,7 @@ import {
   getRoomsByHomeId,
   createHomeInvite,
   getHomeInvites,
+  deleteHomeInvite,
 } from "../controllers/homeController";
 import { requireHomeAdmin } from "@/middleware/permissions";
 
@@ -58,8 +59,13 @@ router.get(
   getHomeInvites
 );
 
-// Delete an invite code
-// router.delete("/:homeId/invites/:inviteId", authenticateToken, )
+// Delete an invite
+router.delete(
+  "/:homeId/invites/:inviteId",
+  authenticateToken,
+  requireHomeAdmin,
+  deleteHomeInvite
+);
 
 // Accept an invite
 // router.post("/invites/accept", )

@@ -124,3 +124,9 @@ export const findHomeInvites = async (homeId: string) => {
     orderBy: { createdAt: "desc" },
   });
 };
+
+export const deleteHomeInvite = async (inviteId: string) => {
+  return prisma.homeInvite.delete({
+    where: { id: inviteId },
+  });
+};

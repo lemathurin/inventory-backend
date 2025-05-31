@@ -246,3 +246,26 @@ export const getHomeInvites = async (
     });
   }
 };
+
+export const deleteHomeInvite = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { inviteId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    await homeModel.deleteHomeInvite(inviteId);
+    res.status(200).json({ message: "Invite deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting invite:", error);
+    res.status(500).json({
+      error: "Failed to delete invite",
+      details: (error as Error).message,
+    });
+  }
+};
