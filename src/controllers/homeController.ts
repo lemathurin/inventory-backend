@@ -216,3 +216,33 @@ export const createHomeInvite = async (
     });
   }
 };
+
+export const getHomeInvites = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Verify user has access to the home
+    const home = await homeModel.findHomeById(homeId);
+    if (!home) {
+      return res.status(404).json({ error: "Home not found" });
+    }
+
+    const invites = await homeModel.findHomeInvites(homeId);
+
+    res.status(200).json(invites);
+  } catch (error) {
+    console.error("Error fetching invites:", error);
+    res.status(500).json({
+      error: "Failed to fetch invites",
+      details: (error as Error).message,
+    });
+  }
+};

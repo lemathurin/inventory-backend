@@ -114,3 +114,13 @@ export const createHomeInvite = async (
     },
   });
 };
+
+export const findHomeInvites = async (homeId: string) => {
+  return prisma.homeInvite.findMany({
+    where: { homeId },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
