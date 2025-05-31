@@ -167,3 +167,19 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
+
+export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+
+    await itemModel.deleteItemById(itemId);
+
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    res.status(500).json({
+      error: "Failed to delete item",
+      details: (error as Error).message,
+    });
+  }
+};

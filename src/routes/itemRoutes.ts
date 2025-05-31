@@ -5,6 +5,7 @@ import {
   createItem,
   getItem,
   updateItem,
+  deleteItem,
 } from "../controllers/itemController";
 import { requireItemAdmin } from "../middleware/permissions";
 
@@ -23,6 +24,6 @@ router.get("/:itemId", authenticateToken, getItem);
 router.patch("/:itemId", authenticateToken, requireItemAdmin, updateItem);
 
 // Delete an existing item
-// router.delete("/:itemId", authenticateToken, deleteItem);
+router.delete("/:itemId", authenticateToken, requireItemAdmin, deleteItem);
 
 export default router;

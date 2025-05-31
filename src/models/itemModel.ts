@@ -134,3 +134,12 @@ export const updateItem = async (
     },
   });
 };
+
+export const deleteItemById = async (itemId: string) => {
+  await prisma.userItem.deleteMany({ where: { itemId } });
+
+  return prisma.item.delete({
+    where: { id: itemId },
+    include: { Home: true },
+  });
+};
