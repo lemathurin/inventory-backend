@@ -50,68 +50,34 @@ export const getRoomDetails = async (req: Request, res: Response) => {
   }
 };
 
-// // Modify a room's settings
-// export const updateRoom = async (req: Request, res: Response) => {
-//   try {
-//     const { roomId } = req.params;
-//     const { name, homeId } = req.body; // Allow changing name and potentially re-assigning to a new home
+export const updateRoom = async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { name } = req.body;
+    const userId = (req as any).user?.userId;
 
-//     const updateData: { name?: string; homeId?: string } = {};
-//     if (name) updateData.name = name;
-//     if (homeId) {
-//         // Check if new home exists
-//         const homeExists = await prisma.home.findUnique({ where: { id: homeId } });
-//         if (!homeExists) {
-//             return res.status(404).json({ error: 'Target home not found' });
-//         }
-//         updateData.homeId = homeId;
-//     }
+    if (!name) {
+      return res.status(400).json({ error: "Room name is required" });
+    }
 
-//     if (Object.keys(updateData).length === 0) {
-//         return res.status(400).json({ error: 'No update data provided' });
-//     }
+    // Check if user is an admin of the room
+    const isAdmin = await roomModel.isUserRoomAdmin(roomId, userId);
+    if (!isAdmin) {
+      return res
+        .status(403)
+        .json({ error: "Only room admins can update the room" });
+    }
 
-//     const updatedRoom = await prisma.room.update({
-//       where: { id: roomId },
-//       data: updateData,
-//       include: {
-//         home: true,
-//       },
-//     });
-//     res.status(200).json(updatedRoom);
-//   } catch (error: any) {
-//     if (error.code === 'P2025') { // Prisma error code for record not found
-//         return res.status(404).json({ error: 'Room not found' });
-//     }
-//     res.status(500).json({ error: 'Failed to update room', details: error.message });
-//   }
-// };
-
-// // Delete a room
-// export const deleteRoom = async (req: Request, res: Response) => {
-//   try {
-//     const { roomId } = req.params;
-
-//     // Optional: Check for items in the room before deleting.
-//     // Depending on your business logic, you might want to prevent deletion if the room is not empty,
-//     // or reassign items, or delete them. For now, we'll proceed with deletion.
-
-//     // Optional: Also need to handle UserRoom entries.
-//     // Prisma's default behavior for relation tables might not automatically cascade deletes
-//     // unless explicitly configured in the schema with onDelete.
-//     // If not, you might need to delete UserRoom entries manually first.
-//     // await prisma.userRoom.deleteMany({ where: { roomId } });
-
-//     await prisma.room.delete({
-//       where: { id: roomId },
-//     });
-//     res.status(204).send(); // No content
-//   } catch (error: any) {
-//     if (error.code === 'P2025') { // Prisma error code for record not found
-//         return res.status(404).json({ error: 'Room not found' });
-//     }
-//     // Handle cases like foreign key constraints if items still reference the room
-//     // and `onDelete` is not set to Cascade or SetNull for the Item-Room relation.
-//     res.status(500).json({ error: 'Failed to delete room', details: error.message });
-//   }
-// };
+    const updatedRoom = await roomModel.updateRoomName(roomId, name);
+    res.status(200).json({
+      message: "Room name updated successfully",
+      room: updatedRoom,
+    });
+  } catch (error) {
+    console.error("Error updating room:", error);
+    res.status(500).json({
+      error: "Failed to update room name",
+      details: (error as Error).message,
+    });
+  }
+};

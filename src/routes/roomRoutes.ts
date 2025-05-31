@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   createRoomInHome,
   getRoomDetails,
-  //   updateRoom,
+  updateRoom,
   //   deleteRoom,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
@@ -15,8 +15,11 @@ router.post("/:homeId/room", authenticateToken, createRoomInHome);
 // Get a room's details
 router.get("/:roomId", authenticateToken, getRoomDetails);
 
+// Update a room's name
+router.patch("/:roomId", authenticateToken, updateRoom);
+
 // Update a room's settings
-// router.put("/:roomId", authenticateToken, updateRoom);
+// router.patch("/:roomId", authenticateToken, updateRoom);
 
 // Delete a room
 // router.delete("/:roomId", authenticateToken, deleteRoom);
