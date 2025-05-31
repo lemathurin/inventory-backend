@@ -3,7 +3,7 @@ import {
   createRoomInHome,
   getRoomDetails,
   updateRoom,
-  //   deleteRoom,
+  deleteRoom,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 import { requireRoomAdmin } from "@/middleware/permissions";
@@ -16,14 +16,11 @@ router.post("/:homeId/room", authenticateToken, createRoomInHome);
 // Get a room's details
 router.get("/:roomId", authenticateToken, getRoomDetails);
 
-// Update a room's name
+// Update a room
 router.patch("/:roomId", authenticateToken, requireRoomAdmin, updateRoom);
 
-// Update a room's settings
-// router.patch("/:roomId", authenticateToken, updateRoom);
-
 // Delete a room
-// router.delete("/:roomId", authenticateToken, deleteRoom);
+router.delete("/:roomId", authenticateToken, requireRoomAdmin, deleteRoom);
 
 // Get users in room
 // router.get("/:roomId/users", authenticateToken, )

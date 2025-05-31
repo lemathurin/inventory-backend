@@ -52,3 +52,9 @@ export const updateRoomName = async (roomId: string, name: string) => {
     },
   });
 };
+
+export const deleteRoomById = async (roomId: string) => {
+  await prisma.userRoom.deleteMany({ where: { roomId } });
+
+  return prisma.room.delete({ where: { id: roomId } });
+};

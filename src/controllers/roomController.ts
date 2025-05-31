@@ -72,3 +72,27 @@ export const updateRoom = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const deleteRoom = async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+
+    // Check if room exists and has items
+    const room = await roomModel.getRoomDetails(roomId);
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+    if (room.items && room.items.length > 0) {
+      return res.status(400).json({ error: "Cannot delete room with items" }); //NOTE: Temporary
+    }
+
+    await roomModel.deleteRoomById(roomId);
+    res.status(200).json({ message: "Room deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting room:", error);
+    res.status(500).json({
+      error: "Failed to delete room",
+      details: (error as Error).message,
+    });
+  }
+};
