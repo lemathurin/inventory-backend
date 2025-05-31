@@ -1,6 +1,10 @@
 import express from "express";
 import { authenticateToken } from "../middleware/auth";
-import { getAllUserItems, createItem } from "../controllers/itemController";
+import {
+  getAllUserItems,
+  createItem,
+  getItem,
+} from "../controllers/itemController";
 
 const router = express.Router();
 
@@ -10,8 +14,8 @@ router.get("/", authenticateToken, getAllUserItems);
 // Create a new item for a specific home
 router.post("/:homeId/item", authenticateToken, createItem);
 
-// Get item information
-// router.get("/:itemId", authenticateToken, );
+// Get a specific item (with user access check)
+router.get("/:itemId", authenticateToken, getItem);
 
 // Update an existing item
 // router.put("/:itemId", authenticateToken, updateItem);

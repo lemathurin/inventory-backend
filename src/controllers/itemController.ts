@@ -73,3 +73,35 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
+
+export const getItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.user!.userId;
+
+    const item = await itemModel.findItemByIdAndUserId(itemId, userId);
+
+    if (!item) {
+      return res.status(404).json({
+        error: "Item not found or you do not have permission to access it",
+      });
+    }
+
+    // Format the response
+    const response = {
+      ...item,
+      users: item.users.map((userItem) => ({
+        ...userItem.user,
+        isAdmin: userItem.admin,
+      })),
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    res.status(500).json({
+      error: "Failed to fetch item",
+      details: (error as Error).message,
+    });
+  }
+};

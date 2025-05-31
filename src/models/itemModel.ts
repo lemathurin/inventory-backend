@@ -73,3 +73,25 @@ export const createNewItem = async (
     },
   });
 };
+
+export const findItemByIdAndUserId = async (itemId: string, userId: string) => {
+  return prisma.item.findFirst({
+    where: {
+      id: itemId,
+      users: {
+        some: {
+          userId: userId,
+        },
+      },
+    },
+    include: {
+      Home: true,
+      rooms: true,
+      users: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
+  });
+};
