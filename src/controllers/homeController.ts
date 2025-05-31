@@ -93,6 +93,39 @@ export const getUserHomes = async (
   }
 };
 
+export const updateHome = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { homeId } = req.params;
+    const { name, address } = req.body;
+
+    if (!name && !address) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    const updatedHome = await homeModel.updateHomeById(homeId, {
+      name,
+      address,
+    });
+
+    res.status(200).json({
+      message: "Home updated successfully",
+      home: updatedHome,
+    });
+  } catch (error) {
+    console.error("Error updating home:", error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "An error occurred while updating the home",
+        details: error.message,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred while updating the home" });
+    }
+  }
+};
+
 export const deleteHome = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { homeId } = req.params;

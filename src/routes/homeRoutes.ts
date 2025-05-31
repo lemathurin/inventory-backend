@@ -3,6 +3,7 @@ import { authenticateToken } from "../middleware/auth";
 import {
   createHome,
   getHomeById,
+  updateHome,
   deleteHome,
 } from "../controllers/homeController";
 
@@ -15,7 +16,7 @@ router.post("/", authenticateToken, createHome);
 router.get("/:homeId", authenticateToken, getHomeById);
 
 // Update a specific home
-// router.put("/:homeId", authenticateToken, )
+router.patch("/:homeId", authenticateToken, updateHome);
 
 // Delete a specific home
 router.delete("/:homeId", authenticateToken, deleteHome);

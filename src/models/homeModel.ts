@@ -53,6 +53,23 @@ export const findHomesByUserId = async (userId: string) => {
   });
 };
 
+export const updateHomeById = async (
+  id: string,
+  data: { name?: string; address?: string }
+) => {
+  return prisma.home.update({
+    where: { id: String(id) },
+    data: {
+      name: data.name,
+      address: data.address,
+    },
+    include: {
+      users: true,
+      items: true,
+    },
+  });
+};
+
 export const deleteHomeById = async (id: string) => {
   await prisma.userHome.deleteMany({
     where: { homeId: id },
