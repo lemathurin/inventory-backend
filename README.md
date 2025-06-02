@@ -1,75 +1,76 @@
-# 🏡 Application d'inventaire domestique - Frontend (inventory-frontend)
+# 🏡 Application d'inventaire domestique - Backend
 
-Interface utilisateur pour l'application d'inventaire domestique permettant aux utilisateurs de gérer leurs biens matériels par maison, pièce et article. Conçue dans un souci d'accessibilité, d'éco-conception et d'expérience utilisateur optimale.
+API backend pour l'application d'inventaire domestique permettant aux utilisateurs de gérer leurs biens matériels par maison, pièce et article. Développée avec un focus sur la performance, la sécurité et le respect des données personnelles (RGPD).
 
 ## 🚀 Fonctionnalités principales
 
 ### 👤 Gestion des utilisateurs
-- **Inscription / Connexion** via email et mot de passe
-- **Tableau de bord personnalisé** : affichage des maisons, pièces et articles liés à l'utilisateur
-- **Profil utilisateur** : gestion des informations personnelles et préférences
+- **API d'authentification** : inscription et connexion via email/mot de passe avec JWT
+- **Gestion des profils** : stockage et récupération des informations utilisateur
 
 ### 🏠 Gestion des maisons et des pièces
-- Interface intuitive pour ajouter, modifier et supprimer des **maisons** (nom, adresse)
-- Gestion visuelle des **pièces**, associées à une maison
-- Navigation fluide entre maisons et pièces
+- **Endpoints CRUD** pour les maisons (nom, adresse)
+- **Endpoints CRUD** pour les pièces, avec association à une maison
 
 ### 📦 Gestion des articles
-- Formulaires complets pour créer et gérer des articles : nom, description, date d'achat, prix, garantie, etc.
-- Association d'articles à des pièces/maisons
-- Contrôle de visibilité (mode **public/privé**) avec indicateurs visuels
+- **API complète** pour créer et gérer des articles avec leurs attributs (nom, description, date d'achat, prix, garantie, etc.)
+- **Système d'association** d'articles à des pièces/maisons
+- **Contrôle de visibilité** (public/privé) des articles
 
 ### ✉️ Invitations
-- Interface **HomeInvite** pour inviter d'autres utilisateurs à collaborer sur une maison
-- Gestion des invitations reçues et envoyées
+- **API HomeInvite** pour inviter d'autres utilisateurs à collaborer sur une maison
 
 ## 🛠️ Stack technique
 
-- **Next.js** : framework React avec SSR, SSG, CSR pour des performances optimales
-- **TypeScript** : typage frontend sécurisé
-- **Tailwind CSS** : design rapide avec configuration centralisée
-- **ShadCN/UI** : composants modernes et personnalisables
-- **Axios** : gestion simple des appels API
-- **Cypress** : tests end-to-end simulant le parcours utilisateur
+- **Node.js** + **Express** : serveur performant et API REST structurée
+- **Prisma ORM** : gestion typée et fiable de la base de données
+- **PostgreSQL** : stockage robuste, compatible multi-formats
+- **TypeScript** : typage strict pour la robustesse
+- **Jest** : tests unitaires et d'intégration
 
 ## 🗂️ Structure du projet
 
 ```
-frontend/
-├── public/             # Fichiers statiques
+backend/
 ├── src/
-│   ├── app/            # Structure des pages (Next.js App Router)
-│   ├── components/     # Composants réutilisables
-│   ├── hooks/          # Hooks personnalisés
-│   ├── lib/            # Utilitaires et configuration
-│   ├── stores/         # Gestion d'état (Zustand/Redux)
-│   ├── types/          # Définitions de types TypeScript
-│   └── services/       # Services d'API et intégrations
-├── cypress/            # Tests end-to-end
-├── tailwind.config.js  # Configuration Tailwind CSS
-├── next.config.js      # Configuration Next.js
+│   ├── controllers/    # Contrôleurs des routes API
+│   ├── models/         # Modèles de données (Prisma)
+│   ├── routes/         # Définition des routes API
+│   ├── services/       # Logique métier
+│   ├── utils/          # Utilitaires
+│   ├── middleware/     # Middleware (auth, validation, etc.)
+│   └── app.ts          # Point d'entrée de l'application
+├── prisma/
+│   └── schema.prisma   # Schéma de base de données
+├── tests/              # Tests unitaires et d'intégration
+├── .env.example        # Variables d'environnement (exemple)
 ├── tsconfig.json       # Configuration TypeScript
-└── package.json        # Dépendances et scripts
+├── package.json        # Dépendances et scripts
+└── jest.config.js      # Configuration des tests
 ```
 
 ## 🚀 Installation et démarrage
 
 ### Prérequis
 - Node.js (v16+)
+- PostgreSQL (v13+)
 
 ### Installation
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/lemathurin/inventory-frontend.git
-cd inventory-frontend
+git clone https://github.com/lemathurin/inventory-backend.git
+cd inventory-backend
 
 # Installer les dépendances
 npm install
 
 # Configurer les variables d'environnement
-cp .env.example .env.local
-# Modifier le fichier .env.local avec vos valeurs
+cp .env.example .env
+# Modifier le fichier .env avec vos valeurs
+
+# Initialiser la base de données
+npx prisma migrate dev
 ```
 
 ### Démarrage
@@ -97,21 +98,21 @@ mes-projets/
 │   └── [votre code Express]
 └── inventory-docker/
     ├── docker-compose.yml
+    ├── .env
     └── README.md
 ```
 
 ### Configuration Docker
 
-**Dockerfile Frontend :**
+**Dockerfile Backend :**
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build 
-EXPOSE 3000
+RUN npx prisma generate
+EXPOSE 5000
 CMD ["npm", "start"]
 ```
 
@@ -129,6 +130,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-inventory_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   backend:
     build: ../inventory-backend
@@ -137,8 +143,14 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-inventory_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-inventory_db}
       JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5000
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../inventory-backend:/app
+      - /app/node_modules
 
   frontend:
     build: ../inventory-frontend
@@ -162,6 +174,7 @@ POSTGRES_PASSWORD=votre_mot_de_passe_securise
 
 # Backend
 JWT_SECRET=votre_jwt_secret_tres_long_et_securise
+NODE_ENV=development
 
 # Frontend
 NEXT_PUBLIC_API_URL=http://localhost:5000
@@ -179,62 +192,83 @@ cp .env.example .env
 # Démarrage complet
 docker-compose up --build -d
 
+# Initialiser la base de données (première fois)
+docker-compose exec backend npx prisma migrate deploy
+
 # Voir les logs
-docker-compose logs -f
+docker-compose logs -f backend
 
 # Arrêter les services
 docker-compose down
 
-# Redémarrer
-docker-compose restart
+# Redémarrer le backend
+docker-compose restart backend
 
 # Voir le statut
 docker-compose ps
 ```
 
 ### Accès aux services
-- **Frontend** : http://localhost:3000
-- **Backend** : http://localhost:5000  
+- **Backend API** : http://localhost:5000
+- **Frontend** : http://localhost:3000  
 - **Database** : localhost:5432
+
+### Développement avec Docker
+
+```bash
+# Logs en temps réel du backend
+docker-compose logs -f backend
+
+# Accéder au container backend
+docker-compose exec backend sh
+
+# Exécuter les migrations
+docker-compose exec backend npx prisma migrate dev
+
+# Réinitialiser la base de données
+docker-compose exec backend npx prisma migrate reset
+```
 
 ## 🧪 Tests
 
 ```bash
-# Tests unitaires
+# Exécuter tous les tests
 npm run test
 
-# Tests end-to-end avec Cypress
-npm run cypress:open   # Interface interactive
-npm run cypress:run    # Exécution en ligne de commande
+# Exécuter les tests en mode watch
+npm run test:watch
+
+# Tests avec Docker
+docker-compose exec backend npm run test
 ```
 
 ## ♻️ Éco-conception
 
-- Architecture optimisée avec Next.js
-- Police Geist : faible poids et bonne lisibilité
-- Code-splitting automatique avec Next.js
+- Architecture légère et optimisée avec le modèle MVC
+- Gestion efficace des connexions à la base de données
+- Mise en cache prévue (Redis / Node-Cache) pour réduire la charge serveur
 - Images Docker Alpine Linux légères
 
-## 🌍 Accessibilité
 
-- Contrastes vérifiés (mode clair/sombre)
-- Navigation clavier avec indicateurs de focus
-- Compatible lecteurs d'écran (ARIA, labels accessibles)
+## 🔐 RGPD et sécurité
 
-## 🎨 Design System
-
-- Système de couleurs cohérent avec mode clair/sombre
-- Typographie standardisée (Geist)
-- Composants réutilisables (ShadCN/UI)
-- Spacing et layout uniformes
+- **Données stockées** : email, nom, mot de passe (haché), logs d'activité
+- **Droits RGPD** : endpoints pour l'accès, la modification et la suppression des données
+- **Sécurité** :
+  - Hachage des mots de passe (bcrypt)
+  - Authentification JWT 
+  - Protection contre les injections SQL via Prisma
+  - Validation des entrées utilisateur
+  - Prévention CSRF/XSS
+  - Variables d'environnement sécurisées
+  - Containers isolés avec Docker
 
 ## 🔄 Roadmap
 
-- 🌐 **Internationalisation (i18next)** : rendre l'application multilingue
-- 📱 **PWA complète** : expérience native sur mobile avec installation
-- 📁 **Gestion des médias** : upload et prévisualisation de fichiers associés aux articles
-
-
+- 📁 **Gestion des médias** : API de téléversement et d'association de fichiers aux articles
+- 🐳 **Optimisation Docker** : Multi-stage builds et orchestration Kubernetes
+- 📊 **Monitoring** : Intégration de métriques et logs centralisés
+- 🔄 **CI/CD** : Pipeline automatisé de déploiement
 
 ## 📄 Licence
 
