@@ -353,3 +353,46 @@ export const getUsersByHomeId = async (
     }
   }
 };
+
+export const removeUserFromHome = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId, userId } = req.params;
+    const currentUserId = req.user?.userId;
+
+    if (!currentUserId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Check if the current user is an admin of the home
+    const currentUserMembership = await homeModel.findUserHomeMembership(
+      currentUserId,
+      homeId
+    );
+
+    if (!currentUserMembership || !currentUserMembership.admin) {
+      return res
+        .status(403)
+        .json({ error: "Only home admins can remove users" });
+    }
+
+    // Remove the user from the home
+    await homeModel.removeUserFromHome(homeId, userId);
+
+    res.status(200).json({ message: "User removed from home successfully" });
+  } catch (error) {
+    console.error("Error removing user from home:", error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "An error occurred while removing the user",
+        details: error.message,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred while removing the user" });
+    }
+  }
+};

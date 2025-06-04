@@ -11,6 +11,7 @@ import {
   deleteHomeInvite,
   acceptHomeInvite,
   getUsersByHomeId,
+  removeUserFromHome,
 } from "../controllers/homeController";
 import { requireHomeAdmin } from "@/middleware/permissions";
 
@@ -41,7 +42,12 @@ router.get("/:homeId/users", authenticateToken, getUsersByHomeId);
 // router.post("/:homeId/users", authenticateToken, )
 
 // Remove a user from a home
-// router.delete("/:homeId/users/:userId", authenticateToken, )
+router.delete(
+  "/:homeId/users/:userId",
+  authenticateToken,
+  requireHomeAdmin,
+  removeUserFromHome
+);
 
 // Invite routes
 

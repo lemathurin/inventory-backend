@@ -169,3 +169,14 @@ export const findUsersByHomeId = async (homeId: string) => {
     },
   });
 };
+
+export const removeUserFromHome = async (homeId: string, userId: string) => {
+  return prisma.userHome.delete({
+    where: {
+      userId_homeId: {
+        userId,
+        homeId,
+      },
+    },
+  });
+};
