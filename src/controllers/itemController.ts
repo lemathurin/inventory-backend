@@ -113,7 +113,7 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
       name,
       description,
       roomId,
-      public: isPublic,
+      public: isPublic, // TODO: Change this
       purchaseDate,
       price,
       hasWarranty,

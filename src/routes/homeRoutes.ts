@@ -10,6 +10,7 @@ import {
   getHomeInvites,
   deleteHomeInvite,
   acceptHomeInvite,
+  getUsersByHomeId,
 } from "../controllers/homeController";
 import { requireHomeAdmin } from "@/middleware/permissions";
 
@@ -34,7 +35,7 @@ router.get("/:homeId/rooms", authenticateToken, getRoomsByHomeId);
 // router.get("/:homeId/items", authenticateToken, )
 
 // Get all users of a home
-// router.get("/:homeId/users", authenticateToken, )
+router.get("/:homeId/users", authenticateToken, getUsersByHomeId);
 
 // Add a user to a home
 // router.post("/:homeId/users", authenticateToken, )

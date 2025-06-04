@@ -329,3 +329,27 @@ export const acceptHomeInvite = async (
     });
   }
 };
+
+export const getUsersByHomeId = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId } = req.params;
+    const users = await homeModel.findUsersByHomeId(homeId);
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "An error occurred while fetching users",
+        details: error.message,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred while fetching users" });
+    }
+  }
+};

@@ -160,3 +160,12 @@ export const findUserHomeMembership = async (
     where: { userId, homeId },
   });
 };
+
+export const findUsersByHomeId = async (homeId: string) => {
+  return prisma.userHome.findMany({
+    where: { homeId },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+  });
+};
