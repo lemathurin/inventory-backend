@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "./auth";
 
 const prisma = new PrismaClient();
 
@@ -22,7 +23,11 @@ const ENTITY_CONFIG = {
 type EntityType = keyof typeof ENTITY_CONFIG;
 
 export const inferAdminMiddleware = (paramKey: string) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       // Extract entity type from parameter key (e.g., 'roomId' → 'room')
       const entityType = paramKey.replace("Id", "") as EntityType;
@@ -34,7 +39,7 @@ export const inferAdminMiddleware = (paramKey: string) => {
       }
 
       const resourceId = req.params[paramKey];
-      const userId = (req as any).user?.userId;
+      const userId = req.user?.userId;
 
       // Check if user is authenticated
       if (!userId) {
@@ -74,7 +79,6 @@ export const inferAdminMiddleware = (paramKey: string) => {
   };
 };
 
-// Export specific middleware functions using inferAdminMiddleware
 export const requireHomeAdmin = inferAdminMiddleware("homeId");
 export const requireRoomAdmin = inferAdminMiddleware("roomId");
 export const requireItemAdmin = inferAdminMiddleware("itemId");
