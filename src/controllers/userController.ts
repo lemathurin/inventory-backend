@@ -12,7 +12,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
     res.cookie("token", token, {
@@ -38,7 +38,10 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const validPassword = await userModel.verifyPassword(password, user.password);
+    const validPassword = await userModel.verifyPassword(
+      password,
+      user.password
+    );
     if (!validPassword) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
@@ -46,7 +49,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1d" },
+      { expiresIn: "1d" }
     );
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
     const hasHome = user.homes.length > 0;
@@ -66,11 +69,11 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const getCurrentUser = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const { userId } = req.user as { userId: string };
-    
+
     const user = await userModel.findUserById(userId);
 
     if (!user) {
@@ -94,19 +97,19 @@ export const getCurrentUser = async (
 
 export const changeUserName = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const { userId } = req.user as { userId: string };
-    const { newName } = req.body;
+    const { name } = req.body;
 
-    console.log("Received request to change name:", { userId, newName });
+    console.log("Received request to change name:", { userId, name });
 
-    if (!newName || typeof newName !== "string") {
+    if (!name || typeof name !== "string") {
       return res.status(400).json({ error: "Invalid name provided" });
     }
 
-    const updatedUser = await userModel.updateUserName(userId, newName);
+    const updatedUser = await userModel.updateUserName(userId, name);
 
     console.log("User updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
@@ -126,25 +129,25 @@ export const changeUserName = async (
 
 export const changeUserEmail = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const { userId } = req.user as { userId: string };
-    const { newEmail } = req.body;
+    const { email } = req.body;
 
-    console.log("Received request to change email:", { userId, newEmail });
+    console.log("Received request to change email:", { userId, email });
 
-    if (!newEmail || typeof newEmail !== "string" || !userModel.isValidEmail(newEmail)) {
+    if (!email || typeof email !== "string" || !userModel.isValidEmail(email)) {
       return res.status(400).json({ error: "Invalid email provided" });
     }
 
     // Check if the new email is already in use
-    const existingUser = await userModel.findUserByEmail(newEmail);
+    const existingUser = await userModel.findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    const updatedUser = await userModel.updateUserEmail(userId, newEmail);
+    const updatedUser = await userModel.updateUserEmail(userId, email);
 
     console.log("User email updated successfully:", updatedUser);
     res.status(200).json(updatedUser);
@@ -177,7 +180,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const changeUserPassword = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const { userId } = req.user as { userId: string };
@@ -205,7 +208,7 @@ export const changeUserPassword = async (
       currentPassword,
       user.password
     );
-    
+
     if (!isPasswordValid) {
       return res.status(400).json({ error: "Current password is incorrect" });
     }
@@ -234,7 +237,7 @@ export const changeUserPassword = async (
 
 export const deleteUserAccount = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const { userId } = req.user as { userId: string };
@@ -253,7 +256,10 @@ export const deleteUserAccount = async (
     }
 
     // Verify password
-    const isPasswordValid = await userModel.verifyPassword(password, user.password);
+    const isPasswordValid = await userModel.verifyPassword(
+      password,
+      user.password
+    );
     if (!isPasswordValid) {
       return res.status(400).json({ error: "Incorrect password" });
     }

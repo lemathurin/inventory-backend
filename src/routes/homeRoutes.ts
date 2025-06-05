@@ -2,23 +2,80 @@ import express from "express";
 import { authenticateToken } from "../middleware/auth";
 import {
   createHome,
-  getAllHomes,
   getHomeById,
-  getUserHomes,
+  updateHome,
+  deleteHome,
+  getRoomsByHomeId,
+  createHomeInvite,
+  getHomeInvites,
+  deleteHomeInvite,
+  acceptHomeInvite,
+  getUsersByHomeId,
+  removeUserFromHome,
 } from "../controllers/homeController";
+import { requireHomeAdmin } from "@/middleware/permissions";
 
 const router = express.Router();
 
 // Create a new home
-router.post("/create-home", authenticateToken, createHome);
-
-// Get all homes for the authenticated user
-router.get("/user-homes", authenticateToken, getUserHomes);
-
-// Get all homes
-router.get("/", getAllHomes);
+router.post("/", authenticateToken, createHome);
 
 // Get a specific home by ID
-router.get("/:id", authenticateToken, getHomeById);
+router.get("/:homeId", authenticateToken, getHomeById);
+
+// Update a specific home
+router.patch("/:homeId", authenticateToken, requireHomeAdmin, updateHome);
+
+// Delete a specific home
+router.delete("/:homeId", authenticateToken, requireHomeAdmin, deleteHome);
+
+// Get all rooms of a home
+router.get("/:homeId/rooms", authenticateToken, getRoomsByHomeId);
+
+// Get all items of a home
+// router.get("/:homeId/items", authenticateToken, )
+
+// Get all users of a home
+router.get("/:homeId/users", authenticateToken, getUsersByHomeId);
+
+// Add a user to a home
+// router.post("/:homeId/users", authenticateToken, )
+
+// Remove a user from a home
+router.delete(
+  "/:homeId/users/:userId",
+  authenticateToken,
+  requireHomeAdmin,
+  removeUserFromHome
+);
+
+// Invite routes
+
+// Create a new invite for a home
+router.post(
+  "/:homeId/invites",
+  authenticateToken,
+  requireHomeAdmin,
+  createHomeInvite
+);
+
+// List all invites for a home
+router.get(
+  "/:homeId/invites",
+  authenticateToken,
+  requireHomeAdmin,
+  getHomeInvites
+);
+
+// Delete an invite
+router.delete(
+  "/:homeId/invites/:inviteId",
+  authenticateToken,
+  requireHomeAdmin,
+  deleteHomeInvite
+);
+
+// Accept an invite
+router.post("/invites/accept", authenticateToken, acceptHomeInvite);
 
 export default router;

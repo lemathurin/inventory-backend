@@ -2,7 +2,10 @@ import { Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
 import * as itemModel from "../models/itemModel";
 
-export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
+export const getAllUserItems = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     const items = await itemModel.findItemsByUserId(req.user!.userId);
     res.json(items);
@@ -12,16 +15,20 @@ export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+// NOTE: Keep for test?
 export const getItemsByHome = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
 ) => {
   try {
     const homeId = String(req.params.homeId);
     console.log("Fetching items for homeId:", homeId);
 
     // Check if home exists and user has access to it
-    const home = await itemModel.findHomeByIdAndUserId(homeId, req.user!.userId);
+    const home = await itemModel.findHomeByIdAndUserId(
+      homeId,
+      req.user!.userId
+    );
 
     if (!home) {
       return res.status(404).json({
@@ -30,7 +37,10 @@ export const getItemsByHome = async (
     }
 
     // Get items for this home that the user has access to
-    const items = await itemModel.findItemsByHomeAndUserId(homeId, req.user!.userId);
+    const items = await itemModel.findItemsByHomeAndUserId(
+      homeId,
+      req.user!.userId
+    );
 
     console.log("Items found:", items.length);
     res.json(items);
@@ -45,20 +55,12 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
     const { name, description, roomId } = req.body;
     const homeId = String(req.params.homeId);
 
-    console.log("Creating item:", {
-      name,
-      description,
-      homeId,
-      userId: req.user!.userId,
-      roomId,
-    });
-
     const item = await itemModel.createNewItem(
       name,
       description,
       homeId,
       req.user!.userId,
-      roomId,
+      roomId
     );
 
     console.log("Item created:", item);
@@ -72,43 +74,95 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
+export const getItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemId } = req.params;
-    const { name, description, purchaseDate, price } = req.body;
+    const userId = req.user!.userId;
 
-    console.log("Updating item:", { itemId, ...req.body });
+    const item = await itemModel.findItemByIdAndUserId(itemId, userId);
 
-    // Check if item exists and user has permission to update it
-    const existingItem = await itemModel.findItemByIdAndHomeIdAndUserId(
-      itemId,
-      req.params.homeId,
-      req.user!.userId
-    );
-
-    if (!existingItem) {
+    if (!item) {
       return res.status(404).json({
-        error: "Item not found or you do not have permission to update it",
+        error: "Item not found or you do not have permission to access it",
       });
     }
 
-    // Prepare update data
-    const updateData = {
-      name,
-      description,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-      price: price !== undefined ? parseFloat(price as string) : null,
+    // Format the response
+    const response = {
+      ...item,
+      users: item.users.map((userItem) => ({
+        ...userItem.user,
+        isAdmin: userItem.admin,
+      })),
     };
 
-    // Update the item
-    const updatedItem = await itemModel.updateItemById(itemId, updateData);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    res.status(500).json({
+      error: "Failed to fetch item",
+      details: (error as Error).message,
+    });
+  }
+};
 
-    console.log("Item updated:", updatedItem);
-    res.json(updatedItem);
+export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const {
+      name,
+      description,
+      roomId,
+      public: isPublic, // TODO: Change this
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    } = req.body;
+
+    // Validate at least one field is provided
+    const hasUpdates = [
+      name,
+      description,
+      roomId,
+      isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    ].some((field) => field !== undefined);
+
+    if (!hasUpdates) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    // Convert string dates to Date objects
+    const parsedPurchaseDate = purchaseDate
+      ? new Date(purchaseDate)
+      : undefined;
+
+    const updatedItem = await itemModel.updateItem(itemId, {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate: parsedPurchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    });
+
+    res.status(200).json({
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
   } catch (error) {
     console.error("Error updating item:", error);
     res.status(500).json({
-      error: "Could not update item",
+      error: "Failed to update item",
       details: (error as Error).message,
     });
   }
@@ -116,36 +170,15 @@ export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
 
 export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { homeId, itemId } = req.params;
+    const { itemId } = req.params;
 
-    console.log("Attempting to delete item:", {
-      homeId,
-      itemId,
-      userId: req.user!.userId,
-    });
-
-    // Check if item exists and user has permission to delete it
-    const existingItem = await itemModel.findItemByIdAndHomeIdAndUserId(
-      itemId,
-      homeId,
-      req.user!.userId
-    );
-
-    if (!existingItem) {
-      return res.status(404).json({
-        error: "Item not found or you do not have permission to delete it",
-      });
-    }
-
-    // Delete the item and its associations
     await itemModel.deleteItemById(itemId);
 
-    console.log("Item deleted successfully:", itemId);
-    res.status(204).send();
+    res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
     console.error("Error deleting item:", error);
     res.status(500).json({
-      error: "Could not delete item",
+      error: "Failed to delete item",
       details: (error as Error).message,
     });
   }

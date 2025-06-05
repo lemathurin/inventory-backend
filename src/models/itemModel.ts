@@ -29,7 +29,10 @@ export const findHomeByIdAndUserId = async (homeId: string, userId: string) => {
   });
 };
 
-export const findItemsByHomeAndUserId = async (homeId: string, userId: string) => {
+export const findItemsByHomeAndUserId = async (
+  homeId: string,
+  userId: string
+) => {
   return prisma.item.findMany({
     where: {
       homeId: homeId,
@@ -47,7 +50,7 @@ export const createNewItem = async (
   description: string,
   homeId: string,
   userId: string,
-  roomId?: string,
+  roomId?: string
 ) => {
   return prisma.item.create({
     data: {
@@ -71,52 +74,72 @@ export const createNewItem = async (
   });
 };
 
-export const findItemByIdAndHomeIdAndUserId = async (
-  itemId: string, 
-  homeId: string, 
-  userId: string
-) => {
+export const findItemByIdAndUserId = async (itemId: string, userId: string) => {
   return prisma.item.findFirst({
     where: {
       id: itemId,
-      homeId: homeId,
       users: {
         some: {
           userId: userId,
         },
       },
     },
+    include: {
+      Home: true,
+      rooms: true,
+      users: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
   });
 };
 
-export const updateItemById = async (
-  itemId: string, 
+export const updateItem = async (
+  itemId: string,
   data: {
     name?: string;
     description?: string;
+    roomId?: string | null;
+    public?: boolean;
     purchaseDate?: Date | null;
     price?: number | null;
+    hasWarranty?: boolean;
+    warrantyType?: string | null;
+    warrantyLength?: number | null;
   }
 ) => {
   return prisma.item.update({
     where: { id: itemId },
-    data,
+    data: {
+      name: data.name,
+      description: data.description,
+      public: data.public,
+      purchaseDate: data.purchaseDate,
+      price: data.price,
+      hasWarranty: data.hasWarranty,
+      warrantyType: data.warrantyType,
+      warrantyLength: data.warrantyLength,
+      rooms: data.roomId
+        ? { connect: { id: data.roomId } }
+        : data.roomId === null
+          ? { set: [] }
+          : undefined,
+    },
+    include: {
+      Home: true,
+      rooms: true,
+      users: true,
+    },
   });
 };
 
 export const deleteItemById = async (itemId: string) => {
-  // Use a transaction to ensure both operations succeed or fail together
-  return prisma.$transaction(async (prisma) => {
-    // First delete related user-item relationships
-    await prisma.userItem.deleteMany({
-      where: {
-        itemId: itemId,
-      },
-    });
+  await prisma.userItem.deleteMany({ where: { itemId } });
 
-    // Then delete the item itself
-    return prisma.item.delete({
-      where: { id: itemId },
-    });
+  return prisma.item.delete({
+    where: { id: itemId },
+    include: { Home: true },
   });
 };

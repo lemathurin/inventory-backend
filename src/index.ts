@@ -1,11 +1,8 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
-import homeRoutes from "./routes/homeRoutes";
-import userRoutes from "./routes/userRoutes";
-import itemRoutes from "./routes/itemRoutes";
-import roomRoutes from "./routes/roomRoutes";
 import dotenv from "dotenv";
+import apiRouter from "./routes";
 
 const envPath = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 dotenv.config({ path: envPath });
@@ -34,12 +31,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     optionsSuccessStatus: 200,
-  }),
+  })
 );
 
 app.use((req, res, next) => {
   console.log(
-    `${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`,
+    `${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`
   );
   next();
 });
@@ -50,10 +47,7 @@ app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
-app.use("/api/homes", homeRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/homes", itemRoutes);
-app.use("/api/rooms", roomRoutes)
+app.use("/api", apiRouter);
 
 app.get("/", (req, res) => {
   res.json({ message: "Home Inventory API" });

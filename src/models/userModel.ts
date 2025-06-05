@@ -5,7 +5,11 @@ const prisma = new PrismaClient({
   log: ["query", "info", "warn", "error"],
 });
 
-export const createUser = async (email: string, password: string, name: string) => {
+export const createUser = async (
+  email: string,
+  password: string,
+  name: string
+) => {
   return prisma.user.create({
     data: {
       email,
@@ -65,23 +69,26 @@ export const findUserById = async (userId: string) => {
   });
 };
 
-export const updateUserName = async (userId: string, newName: string) => {
+export const updateUserName = async (userId: string, name: string) => {
   return prisma.user.update({
     where: { id: userId },
-    data: { name: newName },
+    data: { name: name },
     select: { id: true, name: true, email: true },
   });
 };
 
-export const updateUserEmail = async (userId: string, newEmail: string) => {
+export const updateUserEmail = async (userId: string, email: string) => {
   return prisma.user.update({
     where: { id: userId },
-    data: { email: newEmail },
+    data: { email: email },
     select: { id: true, name: true, email: true },
   });
 };
 
-export const updateUserPassword = async (userId: string, newPassword: string) => {
+export const updateUserPassword = async (
+  userId: string,
+  newPassword: string
+) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   return prisma.user.update({
     where: { id: userId },
@@ -90,7 +97,10 @@ export const updateUserPassword = async (userId: string, newPassword: string) =>
   });
 };
 
-export const verifyPassword = async (plainPassword: string, hashedPassword: string) => {
+export const verifyPassword = async (
+  plainPassword: string,
+  hashedPassword: string
+) => {
   return bcrypt.compare(plainPassword, hashedPassword);
 };
 
