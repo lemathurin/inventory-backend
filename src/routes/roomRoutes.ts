@@ -6,6 +6,7 @@ import {
   deleteRoom,
   getRoomUsers,
   addUserToRoom,
+  removeUserFromRoom,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 import { requireRoomAdmin } from "@/middleware/permissions";
@@ -36,6 +37,11 @@ router.post(
 );
 
 // Remove a user from a room
-// router.delete("/:roomId/users/:userId", authenticateToken, )
+router.delete(
+  "/:roomId/users",
+  authenticateToken,
+  requireRoomAdmin,
+  removeUserFromRoom
+);
 
 export default router;

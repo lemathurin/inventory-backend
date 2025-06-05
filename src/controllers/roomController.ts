@@ -156,3 +156,34 @@ export const addUserToRoom = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const removeUserFromRoom = async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { userId } = req.body;
+
+    // Check if the room exists
+    const room = await roomModel.getRoomDetails(roomId);
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if the user is in the room
+    const userInRoom = room.users.find(
+      (userRoom) => userRoom.user.id === userId
+    );
+    if (!userInRoom) {
+      return res.status(400).json({ error: "User is not in the room" });
+    }
+
+    // Remove the user from the room
+    await roomModel.removeUserFromRoom(roomId, userId);
+    res.status(200).json({ message: "User removed from room successfully" });
+  } catch (error) {
+    console.error("Error removing user from room:", error);
+    res.status(500).json({
+      error: "Failed to remove user from room",
+      details: (error as Error).message,
+    });
+  }
+};
