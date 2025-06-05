@@ -1,15 +1,22 @@
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../middleware/auth";
 import { PrismaClient } from "@prisma/client";
 import * as roomModel from "../models/roomModel";
 
 const prisma = new PrismaClient();
 
 // Create a new room in a home
-export const createRoomInHome = async (req: Request, res: Response) => {
+export const createRoomInHome = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     const { homeId } = req.params;
     const { name } = req.body;
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
 
     if (!name) {
       return res.status(400).json({ error: "Room name is required" });
