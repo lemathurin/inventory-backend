@@ -121,3 +121,38 @@ export const getRoomUsers = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const addUserToRoom = async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Check if the room exists
+    const room = await roomModel.getRoomDetails(roomId);
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if the user is already in the room
+    const existingUser = room.users.find(
+      (userRoom) => userRoom.user.id === userId
+    );
+    if (existingUser) {
+      return res.status(400).json({ error: "User is already in the room" });
+    }
+
+    // Add the user to the room
+    const updatedRoom = await roomModel.addUserToRoom(roomId, userId);
+    res.status(200).json(updatedRoom);
+  } catch (error) {
+    console.error("Error adding user to room:", error);
+    res.status(500).json({
+      error: "Failed to add user to room",
+      details: (error as Error).message,
+    });
+  }
+};

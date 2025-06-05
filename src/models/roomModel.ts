@@ -71,3 +71,25 @@ export const getRoomUsers = async (roomId: string) => {
     },
   });
 };
+
+export const addUserToRoom = async (roomId: string, userId: string) => {
+  return prisma.room.update({
+    where: { id: roomId },
+    data: {
+      users: {
+        create: {
+          userId,
+          admin: false, // Default to non-admin
+        },
+      },
+    },
+    include: {
+      home: true,
+      users: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
+  });
+};
