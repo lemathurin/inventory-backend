@@ -52,7 +52,17 @@ export const getItemsByHome = async (
 
 export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, description, roomId } = req.body;
+    const {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    } = req.body;
     const homeId = String(req.params.homeId);
 
     const item = await itemModel.createNewItem(
@@ -60,7 +70,13 @@ export const createItem = async (req: AuthenticatedRequest, res: Response) => {
       description,
       homeId,
       req.user!.userId,
-      roomId
+      roomId,
+      isPublic,
+      purchaseDate ? new Date(purchaseDate) : null,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength
     );
 
     console.log("Item created:", item);

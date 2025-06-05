@@ -50,13 +50,25 @@ export const createNewItem = async (
   description: string,
   homeId: string,
   userId: string,
-  roomId?: string
+  roomId?: string,
+  isPublic?: boolean,
+  purchaseDate?: Date | null,
+  price?: number | null,
+  hasWarranty?: boolean,
+  warrantyType?: string | null,
+  warrantyLength?: number | null
 ) => {
   return prisma.item.create({
     data: {
       name,
       description,
       homeId: homeId,
+      public: isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
       users: {
         create: {
           userId: userId,
