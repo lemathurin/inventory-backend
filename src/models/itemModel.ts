@@ -16,7 +16,7 @@ export const findItemsByUserId = async (userId: string) => {
   });
 };
 
-export const findHomeByIdAndUserId = async (homeId: string, userId: string) => {
+export const findUserHomeById = async (homeId: string, userId: string) => {
   return prisma.home.findFirst({
     where: {
       id: homeId,
@@ -29,19 +29,39 @@ export const findHomeByIdAndUserId = async (homeId: string, userId: string) => {
   });
 };
 
-export const findItemsByHomeAndUserId = async (
+export const findPublicItemsByHomeId = async (
   homeId: string,
-  userId: string
+  options?: {
+    limit?: number;
+    orderBy?: "createdAt" | "name" | "price"; // Add more fields as needed
+    orderDirection?: "asc" | "desc";
+    publicOnly?: boolean;
+  }
 ) => {
+  const {
+    limit,
+    orderBy = "createdAt",
+    orderDirection = "desc",
+    publicOnly = true,
+  } = options || {};
+
   return prisma.item.findMany({
     where: {
       homeId: homeId,
+      public: publicOnly,
+    },
+    include: {
+      rooms: true,
       users: {
-        some: {
-          userId: userId,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
         },
       },
     },
+    orderBy: {
+      [orderBy]: orderDirection,
+    },
+    take: limit,
   });
 };
 

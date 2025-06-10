@@ -15,20 +15,15 @@ export const getAllUserItems = async (
   }
 };
 
-// NOTE: Keep for test?
-export const getItemsByHome = async (
+export const getPublicItemsByHome = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
   try {
     const homeId = String(req.params.homeId);
-    console.log("Fetching items for homeId:", homeId);
+    const { limit, orderBy, orderDirection } = req.query;
 
-    // Check if home exists and user has access to it
-    const home = await itemModel.findHomeByIdAndUserId(
-      homeId,
-      req.user!.userId
-    );
+    const home = await itemModel.findUserHomeById(homeId, req.user!.userId);
 
     if (!home) {
       return res.status(404).json({
@@ -36,13 +31,13 @@ export const getItemsByHome = async (
       });
     }
 
-    // Get items for this home that the user has access to
-    const items = await itemModel.findItemsByHomeAndUserId(
-      homeId,
-      req.user!.userId
-    );
+    // Get public items with dynamic options
+    const items = await itemModel.findPublicItemsByHomeId(homeId, {
+      limit: limit ? Number(limit) : undefined,
+      orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+      orderDirection: orderDirection as "asc" | "desc" | undefined,
+    });
 
-    console.log("Items found:", items.length);
     res.json(items);
   } catch (error) {
     console.error("Error fetching items:", error);
