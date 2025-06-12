@@ -75,6 +75,75 @@ export const findItemsByHomeIdForUserAndPublic = async (
   });
 };
 
+export const findUserRoomById = async (roomId: string, userId: string) => {
+  return prisma.room.findFirst({
+    where: {
+      id: roomId,
+      users: {
+        some: {
+          userId,
+        },
+      },
+    },
+  });
+};
+
+export const findItemsByRoomIdForUserAndPublic = async (
+  roomId: string,
+  userId: string,
+  options?: {
+    limit?: number;
+    orderBy?: "createdAt" | "name" | "price";
+    orderDirection?: "asc" | "desc";
+  }
+) => {
+  const {
+    limit,
+    orderBy = "createdAt",
+    orderDirection = "desc",
+  } = options || {};
+
+  return prisma.item.findMany({
+    where: {
+      rooms: {
+        some: {
+          id: roomId,
+        },
+      },
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        {
+          public: true,
+        },
+      ],
+    },
+    include: {
+      rooms: true,
+      users: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      [orderBy]: orderDirection,
+    },
+    take: limit,
+  });
+};
+
 export const createNewItem = async (
   name: string,
   description: string,
