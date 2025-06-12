@@ -2,7 +2,7 @@ import express from "express";
 import { authenticateToken } from "../middleware/auth";
 import {
   getAllUserItems,
-  getPublicItemsByHome,
+  getItemsByHome,
   createItem,
   getItem,
   updateItem,
@@ -16,7 +16,7 @@ const router = express.Router();
 router.get("/", authenticateToken, getAllUserItems);
 
 // Get all public items for a specific home
-router.get("/:homeId/public", authenticateToken, getPublicItemsByHome);
+router.get("/:homeId", authenticateToken, getItemsByHome);
 
 // Create a new item for a specific home
 router.post("/:homeId/item", authenticateToken, createItem);

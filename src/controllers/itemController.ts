@@ -15,7 +15,7 @@ export const getAllUserItems = async (
   }
 };
 
-export const getPublicItemsByHome = async (
+export const getItemsByHome = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
@@ -24,18 +24,28 @@ export const getPublicItemsByHome = async (
     const { limit, orderBy, orderDirection } = req.query;
 
     const home = await itemModel.findUserHomeById(homeId, req.user!.userId);
-
     if (!home) {
       return res.status(404).json({
         error: "Home not found or you do not have permission to access it",
       });
     }
 
-    // Get public items with dynamic options
-    const items = await itemModel.findPublicItemsByHomeId(homeId, {
-      limit: limit ? Number(limit) : undefined,
-      orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
-      orderDirection: orderDirection as "asc" | "desc" | undefined,
+    const rawItems = await itemModel.findItemsByHomeIdForUserAndPublic(
+      homeId,
+      req.user!.userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+        orderDirection: orderDirection as "asc" | "desc" | undefined,
+      }
+    );
+
+    const items = rawItems.map((item) => {
+      const ownerUserItem = item.users[0]; // NOTE: this only shows the 1st user
+      return {
+        ...item,
+        owner: ownerUserItem?.user || null,
+      };
     });
 
     res.json(items);

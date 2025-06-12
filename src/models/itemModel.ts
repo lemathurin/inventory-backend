@@ -29,26 +29,36 @@ export const findUserHomeById = async (homeId: string, userId: string) => {
   });
 };
 
-export const findPublicItemsByHomeId = async (
+export const findItemsByHomeIdForUserAndPublic = async (
   homeId: string,
+  userId: string,
   options?: {
     limit?: number;
-    orderBy?: "createdAt" | "name" | "price"; // Add more fields as needed
+    orderBy?: "createdAt" | "name" | "price";
     orderDirection?: "asc" | "desc";
-    publicOnly?: boolean;
   }
 ) => {
   const {
     limit,
     orderBy = "createdAt",
     orderDirection = "desc",
-    publicOnly = true,
   } = options || {};
 
   return prisma.item.findMany({
     where: {
       homeId: homeId,
-      public: publicOnly,
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        {
+          public: true,
+        },
+      ],
     },
     include: {
       rooms: true,
