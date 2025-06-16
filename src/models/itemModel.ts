@@ -189,11 +189,18 @@ export const findItemByIdAndUserId = async (itemId: string, userId: string) => {
   return prisma.item.findFirst({
     where: {
       id: itemId,
-      users: {
-        some: {
-          userId: userId,
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
         },
-      },
+        {
+          public: true,
+        },
+      ],
     },
     include: {
       Home: true,
