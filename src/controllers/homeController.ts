@@ -52,8 +52,10 @@ export const getAllHomes = async (req: Request, res: Response) => {
 export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { homeId } = req.params;
+    const userId = req.user?.userId;
+
     console.log("Fetching home with ID:", homeId);
-    const home = await homeModel.findHomeById(homeId);
+    const home = await homeModel.findHomeById(homeId, userId);
 
     if (home) {
       res.json(home);
