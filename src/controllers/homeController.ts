@@ -52,8 +52,10 @@ export const getAllHomes = async (req: Request, res: Response) => {
 export const getHomeById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { homeId } = req.params;
+    const userId = req.user?.userId;
+
     console.log("Fetching home with ID:", homeId);
-    const home = await homeModel.findHomeById(homeId);
+    const home = await homeModel.findHomeById(homeId, userId);
 
     if (home) {
       res.json(home);
@@ -394,5 +396,35 @@ export const removeUserFromHome = async (
         .status(500)
         .json({ error: "An unknown error occurred while removing the user" });
     }
+  }
+};
+
+export const getHomePermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { homeId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const membership = await homeModel.findUserHomeMembership(userId, homeId);
+
+    if (!membership) {
+      return res
+        .status(404)
+        .json({ error: "User is not a member of this home" });
+    }
+
+    res.json({ admin: membership.admin });
+  } catch (error) {
+    console.error("Error fetching home permissions:", error);
+    res.status(500).json({
+      error: "Failed to fetch home permissions",
+      details: (error as Error).message,
+    });
   }
 };

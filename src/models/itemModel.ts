@@ -16,7 +16,7 @@ export const findItemsByUserId = async (userId: string) => {
   });
 };
 
-export const findHomeByIdAndUserId = async (homeId: string, userId: string) => {
+export const findUserHomeById = async (homeId: string, userId: string) => {
   return prisma.home.findFirst({
     where: {
       id: homeId,
@@ -29,19 +29,118 @@ export const findHomeByIdAndUserId = async (homeId: string, userId: string) => {
   });
 };
 
-export const findItemsByHomeAndUserId = async (
+export const findItemsByHomeIdForUserAndPublic = async (
   homeId: string,
-  userId: string
+  userId: string,
+  options?: {
+    limit?: number;
+    orderBy?: "createdAt" | "name" | "price";
+    orderDirection?: "asc" | "desc";
+  }
 ) => {
+  const {
+    limit,
+    orderBy = "createdAt",
+    orderDirection = "desc",
+  } = options || {};
+
   return prisma.item.findMany({
     where: {
       homeId: homeId,
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        {
+          public: true,
+        },
+      ],
+    },
+    include: {
+      rooms: true,
       users: {
-        some: {
-          userId: userId,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
         },
       },
     },
+    orderBy: {
+      [orderBy]: orderDirection,
+    },
+    take: limit,
+  });
+};
+
+export const findUserRoomById = async (roomId: string, userId: string) => {
+  return prisma.room.findFirst({
+    where: {
+      id: roomId,
+      users: {
+        some: {
+          userId,
+        },
+      },
+    },
+  });
+};
+
+export const findItemsByRoomIdForUserAndPublic = async (
+  roomId: string,
+  userId: string,
+  options?: {
+    limit?: number;
+    orderBy?: "createdAt" | "name" | "price";
+    orderDirection?: "asc" | "desc";
+  }
+) => {
+  const {
+    limit,
+    orderBy = "createdAt",
+    orderDirection = "desc",
+  } = options || {};
+
+  return prisma.item.findMany({
+    where: {
+      rooms: {
+        some: {
+          id: roomId,
+        },
+      },
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        {
+          public: true,
+        },
+      ],
+    },
+    include: {
+      rooms: true,
+      users: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      [orderBy]: orderDirection,
+    },
+    take: limit,
   });
 };
 
@@ -90,11 +189,18 @@ export const findItemByIdAndUserId = async (itemId: string, userId: string) => {
   return prisma.item.findFirst({
     where: {
       id: itemId,
-      users: {
-        some: {
-          userId: userId,
+      OR: [
+        {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
         },
-      },
+        {
+          public: true,
+        },
+      ],
     },
     include: {
       Home: true,

@@ -15,37 +15,82 @@ export const getAllUserItems = async (
   }
 };
 
-// NOTE: Keep for test?
 export const getItemsByHome = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
   try {
     const homeId = String(req.params.homeId);
-    console.log("Fetching items for homeId:", homeId);
+    const { limit, orderBy, orderDirection } = req.query;
 
-    // Check if home exists and user has access to it
-    const home = await itemModel.findHomeByIdAndUserId(
-      homeId,
-      req.user!.userId
-    );
-
+    const home = await itemModel.findUserHomeById(homeId, req.user!.userId);
     if (!home) {
       return res.status(404).json({
         error: "Home not found or you do not have permission to access it",
       });
     }
 
-    // Get items for this home that the user has access to
-    const items = await itemModel.findItemsByHomeAndUserId(
+    const rawItems = await itemModel.findItemsByHomeIdForUserAndPublic(
       homeId,
-      req.user!.userId
+      req.user!.userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+        orderDirection: orderDirection as "asc" | "desc" | undefined,
+      }
     );
 
-    console.log("Items found:", items.length);
+    const items = rawItems.map((item) => {
+      const ownerUserItem = item.users[0]; // NOTE: this only shows the 1st user
+      return {
+        ...item,
+        owner: ownerUserItem?.user || null,
+      };
+    });
+
     res.json(items);
   } catch (error) {
     console.error("Error fetching items:", error);
+    res.status(500).json({ error: "Could not fetch items" });
+  }
+};
+
+export const getItemsByRoom = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const roomId = String(req.params.roomId);
+    const { limit, orderBy, orderDirection } = req.query;
+
+    const room = await itemModel.findUserRoomById(roomId, req.user!.userId);
+    if (!room) {
+      return res.status(404).json({
+        error: "Room not found or you do not have permission to access it",
+      });
+    }
+
+    const rawItems = await itemModel.findItemsByRoomIdForUserAndPublic(
+      roomId,
+      req.user!.userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+        orderDirection: orderDirection as "asc" | "desc" | undefined,
+      }
+    );
+
+    const items = rawItems.map((item) => {
+      const ownerUserItem = item.users[0]; // NOTE: this only shows the 1st user
+      return {
+        ...item,
+        owner: ownerUserItem?.user || null,
+      };
+    });
+
+    res.json(items);
+  } catch (error) {
+    console.error("Error fetching room items:", error);
     res.status(500).json({ error: "Could not fetch items" });
   }
 };

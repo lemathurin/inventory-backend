@@ -80,7 +80,8 @@ export const getCurrentUser = async (
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json(user);
+    const { id, ...rest } = user;
+    res.status(200).json({ userId: id, ...rest });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error fetching current user:", error.message);

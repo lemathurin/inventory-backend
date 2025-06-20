@@ -31,10 +31,22 @@ export const findAllHomes = async () => {
   return prisma.home.findMany();
 };
 
-export const findHomeById = async (id: string) => {
+export const findHomeById = async (id: string, userId?: string) => {
   return prisma.home.findUnique({
     where: { id: String(id) },
-    include: { users: true, rooms: true, items: true },
+    include: {
+      users: true,
+      rooms: {
+        include: {
+          users: userId
+            ? {
+                where: { userId },
+              }
+            : false,
+        },
+      },
+      items: true,
+    },
   });
 };
 
@@ -162,12 +174,19 @@ export const findUserHomeMembership = async (
 };
 
 export const findUsersByHomeId = async (homeId: string) => {
-  return prisma.userHome.findMany({
+  const userHomes = await prisma.userHome.findMany({
     where: { homeId },
     include: {
       user: { select: { id: true, name: true, email: true } },
     },
   });
+
+  // Flatten the response to avoid redundancy
+  return userHomes.map(({ user, ...rest }) => ({
+    ...rest,
+    name: user.name,
+    email: user.email,
+  }));
 };
 
 export const removeUserFromHome = async (homeId: string, userId: string) => {
