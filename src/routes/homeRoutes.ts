@@ -14,7 +14,7 @@ import {
   removeUserFromHome,
   getHomePermissions,
 } from "../controllers/homeController";
-import { requireHomeAdmin } from "@/middleware/permissions";
+import { requireHomeAdmin } from "../middleware/permissions";
 
 const router = express.Router();
 

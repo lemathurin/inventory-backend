@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
 import * as homeModel from "../models/homeModel";
-import { validateInviteCode } from "@/utils/inviteCodes";
+import { validateInviteCode } from "../utils/inviteCodes";
 
 export const createHome = async (req: AuthenticatedRequest, res: Response) => {
   try {

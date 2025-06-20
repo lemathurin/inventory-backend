@@ -6,6 +6,10 @@ WORKDIR /app
 
 # Copie des dépendances
 COPY package*.json ./
+COPY tsconfig.json ./
+
+# Installer les dépendances
+RUN apk add --no-cache openssl libc6-compat
 RUN npm install
 
 # Copie du code source
@@ -13,6 +17,9 @@ COPY . .
 
 # Génération Prisma
 RUN npx prisma generate
+
+# Build de l'application
+RUN npm run build
 
 # Port
 EXPOSE 5000

@@ -9,7 +9,7 @@ import {
   removeUserFromRoom,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
-import { requireRoomAdmin } from "@/middleware/permissions";
+import { requireRoomAdmin } from "../middleware/permissions";
 
 const router = Router();
 
