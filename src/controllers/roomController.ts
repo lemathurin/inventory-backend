@@ -194,3 +194,33 @@ export const removeUserFromRoom = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getRoomPermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const membership = await roomModel.findUserRoomMembership(userId, roomId);
+
+    if (!membership) {
+      return res
+        .status(404)
+        .json({ error: "User is not a member of this room" });
+    }
+
+    res.json({ admin: membership.admin });
+  } catch (error) {
+    console.error("Error fetching room permissions:", error);
+    res.status(500).json({
+      error: "Failed to fetch room permissions",
+      details: (error as Error).message,
+    });
+  }
+};

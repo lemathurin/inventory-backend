@@ -244,3 +244,33 @@ export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
+
+export const getItemPermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const membership = await itemModel.findUserItemMembership(userId, itemId);
+
+    if (!membership) {
+      return res
+        .status(404)
+        .json({ error: "User is not a member of this item" });
+    }
+
+    res.json({ admin: membership.admin });
+  } catch (error) {
+    console.error("Error fetching item permissions:", error);
+    res.status(500).json({
+      error: "Failed to fetch item permissions",
+      details: (error as Error).message,
+    });
+  }
+};

@@ -7,6 +7,7 @@ import {
   getRoomUsers,
   addUserToRoom,
   removeUserFromRoom,
+  getRoomPermissions,
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 import { requireRoomAdmin } from "../middleware/permissions";
@@ -43,5 +44,8 @@ router.delete(
   requireRoomAdmin,
   removeUserFromRoom
 );
+
+// Get user permissions for a room
+router.get("/:roomId/permissions", authenticateToken, getRoomPermissions);
 
 export default router;
