@@ -8,6 +8,7 @@ import {
   getItem,
   updateItem,
   deleteItem,
+  getItemPermissions,
 } from "../controllers/itemController";
 import { requireItemAdmin } from "../middleware/permissions";
 
@@ -33,5 +34,8 @@ router.patch("/:itemId", authenticateToken, requireItemAdmin, updateItem);
 
 // Delete an existing item
 router.delete("/:itemId", authenticateToken, requireItemAdmin, deleteItem);
+
+// Get user permissions for an item
+router.get("/:itemId/permissions", authenticateToken, getItemPermissions);
 
 export default router;

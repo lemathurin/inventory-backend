@@ -261,3 +261,12 @@ export const deleteItemById = async (itemId: string) => {
     include: { Home: true },
   });
 };
+
+export const findUserItemMembership = async (
+  userId: string,
+  itemId: string
+) => {
+  return prisma.userItem.findFirst({
+    where: { userId, itemId },
+  });
+};

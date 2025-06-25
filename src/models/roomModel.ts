@@ -104,3 +104,12 @@ export const removeUserFromRoom = async (roomId: string, userId: string) => {
     },
   });
 };
+
+export const findUserRoomMembership = async (
+  userId: string,
+  roomId: string
+) => {
+  return prisma.userRoom.findFirst({
+    where: { userId, roomId },
+  });
+};
