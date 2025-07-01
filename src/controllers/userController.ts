@@ -1,6 +1,9 @@
-import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { AuthenticatedRequest } from "../middleware/auth";
+import {
+  AuthenticatedRequest,
+  generateToken,
+  setTokenCookie,
+} from "../middleware/auth";
 import * as userModel from "../models/userModel";
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -9,19 +12,10 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const user = await userModel.createUser(email, password, name);
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
-    );
+    const token = generateToken(user.id);
+    setTokenCookie(res, token);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    res.status(201).json({ token, id: user.id });
+    res.status(201).json({ id: user.id });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "An error occurred during registration" });
@@ -46,21 +40,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }
-    );
+    const token = generateToken(user.id);
+    setTokenCookie(res, token);
+
     const homeId = user.homes.length > 0 ? user.homes[0].homeId : null;
     const hasHome = user.homes.length > 0;
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    res.status(200).json({ token, id: user.id, homeId, hasHome });
+    res.status(200).json({ id: user.id, homeId, hasHome });
   } catch (error) {
     console.error("Login error:", error);
     res.status(401).json({ error: "Invalid credentials" });
@@ -288,11 +274,7 @@ export const deleteUserAccount = async (
 
 export const logoutUser = async (req: Request, res: Response) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
-
+    res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
