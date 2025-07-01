@@ -240,7 +240,7 @@ export const updateItem = async (
       warrantyType: data.warrantyType,
       warrantyLength: data.warrantyLength,
       rooms: data.roomId
-        ? { connect: { id: data.roomId } }
+        ? { set: [{ id: data.roomId }] }
         : data.roomId === null
           ? { set: [] }
           : undefined,
