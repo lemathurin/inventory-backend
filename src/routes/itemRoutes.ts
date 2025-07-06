@@ -11,6 +11,7 @@ import {
   getItemPermissions,
 } from "../controllers/itemController";
 import { requireItemAdmin } from "../middleware/permissions";
+import { sanitizeBody } from "../middleware/sanitizeBody";
 
 const router = express.Router();
 
@@ -24,13 +25,19 @@ router.get("/home/:homeId", authenticateToken, getItemsByHome);
 router.get("/room/:roomId", authenticateToken, getItemsByRoom);
 
 // Create a new item for a specific home
-router.post("/:homeId/item", authenticateToken, createItem);
+router.post("/:homeId/item", authenticateToken, sanitizeBody, createItem);
 
 // Get a specific item (with user access check)
 router.get("/:itemId", authenticateToken, getItem);
 
 // Update an existing item
-router.patch("/:itemId", authenticateToken, requireItemAdmin, updateItem);
+router.patch(
+  "/:itemId",
+  authenticateToken,
+  requireItemAdmin,
+  sanitizeBody,
+  updateItem
+);
 
 // Delete an existing item
 router.delete("/:itemId", authenticateToken, requireItemAdmin, deleteItem);

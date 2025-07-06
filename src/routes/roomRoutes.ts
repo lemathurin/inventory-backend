@@ -11,17 +11,24 @@ import {
 } from "../controllers/roomController";
 import { authenticateToken } from "../middleware/auth";
 import { requireRoomAdmin } from "../middleware/permissions";
+import { sanitizeBody } from "../middleware/sanitizeBody";
 
 const router = Router();
 
 // Create a new room in a specific home
-router.post("/:homeId/room", authenticateToken, createRoomInHome);
+router.post("/:homeId/room", authenticateToken, sanitizeBody, createRoomInHome);
 
 // Get a room's details
 router.get("/:roomId", authenticateToken, getRoomDetails);
 
 // Update a room
-router.patch("/:roomId", authenticateToken, requireRoomAdmin, updateRoom);
+router.patch(
+  "/:roomId",
+  authenticateToken,
+  requireRoomAdmin,
+  sanitizeBody,
+  updateRoom
+);
 
 // Delete a room
 router.delete("/:roomId", authenticateToken, requireRoomAdmin, deleteRoom);

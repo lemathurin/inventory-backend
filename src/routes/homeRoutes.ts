@@ -15,17 +15,24 @@ import {
   getHomePermissions,
 } from "../controllers/homeController";
 import { requireHomeAdmin } from "../middleware/permissions";
+import { sanitizeBody } from "../middleware/sanitizeBody";
 
 const router = express.Router();
 
 // Create a new home
-router.post("/", authenticateToken, createHome);
+router.post("/", authenticateToken, sanitizeBody, createHome);
 
 // Get a specific home by ID
 router.get("/:homeId", authenticateToken, getHomeById);
 
 // Update a specific home
-router.patch("/:homeId", authenticateToken, requireHomeAdmin, updateHome);
+router.patch(
+  "/:homeId",
+  authenticateToken,
+  requireHomeAdmin,
+  sanitizeBody,
+  updateHome
+);
 
 // Delete a specific home
 router.delete("/:homeId", authenticateToken, requireHomeAdmin, deleteHome);
@@ -57,6 +64,7 @@ router.post(
   "/:homeId/invites",
   authenticateToken,
   requireHomeAdmin,
+  sanitizeBody,
   createHomeInvite
 );
 
