@@ -44,6 +44,7 @@ app.use((req, res, next) => {
 app.options("*", cors());
 
 app.use(express.json());
+app.use(require("./middleware/sanitizeBody").sanitizeBody);
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
