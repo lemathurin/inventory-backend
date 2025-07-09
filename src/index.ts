@@ -44,6 +44,7 @@ app.use((req, res, next) => {
 app.options("*", cors());
 
 app.use(express.json());
+app.use(require("./middleware/sanitizeBody").sanitizeBody);
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
@@ -54,16 +55,23 @@ app.get("/", (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error("Error:", err.message);
-  res.status(500).json({
-    error: "Internal Server Error",
-    message:
-      process.env.NODE_ENV === "development"
-        ? err.message
-        : "An error occurred",
-  });
-});
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Error:", err.message);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "An error occurred",
+    });
+  }
+);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);

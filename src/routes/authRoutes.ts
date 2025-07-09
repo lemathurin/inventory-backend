@@ -4,20 +4,16 @@ import {
   loginUser,
   logoutUser,
 } from "../controllers/userController";
-import { sanitizeBody } from "@/middleware/sanitizeBody";
 
 const router = express.Router();
 
 // Register a new user
-router.post("/register", sanitizeBody, registerUser);
+router.post("/register", registerUser);
 
 // Login a user
-router.post("/login", sanitizeBody, loginUser);
+router.post("/login", loginUser);
 
 // Logout a user
 router.post("/logout", logoutUser);
-
-// Refresh token
-// router.post("/token", )
 
 export default router;
