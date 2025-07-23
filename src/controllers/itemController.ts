@@ -1,126 +1,276 @@
-import { PrismaClient } from '@prisma/client';
-import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth';
+import { Response } from "express";
+import { AuthenticatedRequest } from "../middleware/auth";
+import * as itemModel from "../models/itemModel";
 
-const prisma = new PrismaClient();
-
-export const getAllItems = async (req: AuthenticatedRequest, res: Response) => {
+export const getAllUserItems = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const items = await prisma.item.findMany({
-      where: { ownerId: req.user!.userId }
-    });
+    const items = await itemModel.findItemsByUserId(req.user!.userId);
     res.json(items);
   } catch (error) {
-    res.status(500).json({ error: 'Could not fetch items' });
+    console.error(error);
+    res.status(500).json({ error: "Could not fetch items" });
   }
 };
 
-export const getItemsByHome = async (req: AuthenticatedRequest, res: Response) => {
+export const getItemsByHome = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     const homeId = String(req.params.homeId);
-    console.log('Fetching items for homeId:', homeId);
-    const items = await prisma.item.findMany({
-      where: {
-        homeId: homeId,
-        ownerId: req.user!.userId,
+    const { limit, orderBy, orderDirection } = req.query;
+
+    const home = await itemModel.findUserHomeById(homeId, req.user!.userId);
+    if (!home) {
+      return res.status(404).json({
+        error: "Home not found or you do not have permission to access it",
+      });
+    }
+
+    const rawItems = await itemModel.findItemsByHomeIdForUserAndPublic(
+      homeId,
+      req.user!.userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+        orderDirection: orderDirection as "asc" | "desc" | undefined,
       }
+    );
+
+    const items = rawItems.map((item) => {
+      const ownerUserItem = item.users[0]; // NOTE: this only shows the 1st user
+      return {
+        ...item,
+        owner: ownerUserItem?.user || null,
+      };
     });
-    console.log('Items found:', items.length);
+
     res.json(items);
   } catch (error) {
-    console.error('Error fetching items:', error);
-    res.status(500).json({ error: 'Could not fetch items' });
+    console.error("Error fetching items:", error);
+    res.status(500).json({ error: "Could not fetch items" });
+  }
+};
+
+export const getItemsByRoom = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const roomId = String(req.params.roomId);
+    const { limit, orderBy, orderDirection } = req.query;
+
+    const room = await itemModel.findUserRoomById(roomId, req.user!.userId);
+    if (!room) {
+      return res.status(404).json({
+        error: "Room not found or you do not have permission to access it",
+      });
+    }
+
+    const rawItems = await itemModel.findItemsByRoomIdForUserAndPublic(
+      roomId,
+      req.user!.userId,
+      {
+        limit: limit ? Number(limit) : undefined,
+        orderBy: orderBy as "createdAt" | "name" | "price" | undefined,
+        orderDirection: orderDirection as "asc" | "desc" | undefined,
+      }
+    );
+
+    const items = rawItems.map((item) => {
+      const ownerUserItem = item.users[0]; // NOTE: this only shows the 1st user
+      return {
+        ...item,
+        owner: ownerUserItem?.user || null,
+      };
+    });
+
+    res.json(items);
+  } catch (error) {
+    console.error("Error fetching room items:", error);
+    res.status(500).json({ error: "Could not fetch items" });
   }
 };
 
 export const createItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, description } = req.body;
+    const {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    } = req.body;
     const homeId = String(req.params.homeId);
 
-    console.log('Creating item:', { name, description, homeId, userId: req.user!.userId });
+    const item = await itemModel.createNewItem(
+      name,
+      description,
+      homeId,
+      req.user!.userId,
+      roomId,
+      isPublic,
+      purchaseDate ? new Date(purchaseDate) : null,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength
+    );
 
-    const item = await prisma.item.create({
-      data: {
-        name,
-        description,
-        ownerId: req.user!.userId,
-        homeId: homeId
-      },
-    });
-
-    console.log('Item created:', item);
+    console.log("Item created:", item);
     res.status(201).json(item);
   } catch (error) {
-    console.error('Error creating item:', error);
-    res.status(500).json({ error: 'Could not create item', details: (error as Error).message });
+    console.error("Error creating item:", error);
+    res.status(500).json({
+      error: "Could not create item",
+      details: (error as Error).message,
+    });
+  }
+};
+
+export const getItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.user!.userId;
+
+    const item = await itemModel.findItemByIdAndUserId(itemId, userId);
+
+    if (!item) {
+      return res.status(404).json({
+        error: "Item not found or you do not have permission to access it",
+      });
+    }
+
+    // Format the response
+    const response = {
+      ...item,
+      users: item.users.map((userItem) => ({
+        ...userItem.user,
+        isAdmin: userItem.admin,
+      })),
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    res.status(500).json({
+      error: "Failed to fetch item",
+      details: (error as Error).message,
+    });
   }
 };
 
 export const updateItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemId } = req.params;
-    const { name, description, purchaseDate, price, warranty } = req.body;
+    const {
+      name,
+      description,
+      roomId,
+      public: isPublic, // TODO: Change this
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    } = req.body;
 
-    console.log('Updating item:', { itemId, ...req.body });
+    // Validate at least one field is provided
+    const hasUpdates = [
+      name,
+      description,
+      roomId,
+      isPublic,
+      purchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
+    ].some((field) => field !== undefined);
 
-    const existingItem = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        homeId: req.params.homeId,
-        ownerId: req.user!.userId,
-      },
-    });
-
-    if (!existingItem) {
-      return res.status(404).json({ error: 'Item not found or you do not have permission to update it' });
+    if (!hasUpdates) {
+      return res.status(400).json({ error: "No fields to update" });
     }
 
-    const updatedItem = await prisma.item.update({
-      where: { id: itemId },
-      data: {
-        name,
-        description,
-        purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-        price: price !== undefined ? parseFloat(price as string) : null,
-        warranty: warranty !== undefined ? parseInt(warranty as string) : null,
-      },
+    // Convert string dates to Date objects
+    const parsedPurchaseDate = purchaseDate
+      ? new Date(purchaseDate)
+      : undefined;
+
+    const updatedItem = await itemModel.updateItem(itemId, {
+      name,
+      description,
+      roomId,
+      public: isPublic,
+      purchaseDate: parsedPurchaseDate,
+      price,
+      hasWarranty,
+      warrantyType,
+      warrantyLength,
     });
 
-    console.log('Item updated:', updatedItem);
-    res.json(updatedItem);
+    res.status(200).json({
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
   } catch (error) {
-    console.error('Error updating item:', error);
-    res.status(500).json({ error: 'Could not update item', details: (error as Error).message });
+    console.error("Error updating item:", error);
+    res.status(500).json({
+      error: "Failed to update item",
+      details: (error as Error).message,
+    });
   }
 };
 
 export const deleteItem = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { homeId, itemId } = req.params;
+    const { itemId } = req.params;
 
-    console.log('Attempting to delete item:', { homeId, itemId, userId: req.user!.userId });
+    await itemModel.deleteItemById(itemId);
 
-    const existingItem = await prisma.item.findFirst({
-      where: {
-        id: itemId,
-        homeId: homeId,
-        ownerId: req.user!.userId,
-      },
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    res.status(500).json({
+      error: "Failed to delete item",
+      details: (error as Error).message,
     });
+  }
+};
 
-    if (!existingItem) {
-      return res.status(404).json({ error: 'Item not found or you do not have permission to delete it' });
+export const getItemPermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
-    await prisma.item.delete({
-      where: { id: itemId },
-    });
+    const membership = await itemModel.findUserItemMembership(userId, itemId);
 
-    console.log('Item deleted successfully:', itemId);
-    res.status(204).send();
+    if (!membership) {
+      return res
+        .status(404)
+        .json({ error: "User is not a member of this item" });
+    }
+
+    res.json({ admin: membership.admin });
   } catch (error) {
-    console.error('Error deleting item:', error);
-    res.status(500).json({ error: 'Could not delete item', details: (error as Error).message });
+    console.error("Error fetching item permissions:", error);
+    res.status(500).json({
+      error: "Failed to fetch item permissions",
+      details: (error as Error).message,
+    });
   }
 };

@@ -7,8 +7,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./",
+    "types": ["jest", "node"],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "src/*": ["src/*"]
+    },
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "types", "jest.d.ts", "tests/**/*", "__mocks__"],
   "exclude": ["node_modules"]
 }

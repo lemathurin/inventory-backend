@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,31 +8,114 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  homes     Home[]   @relation("UserHomes")
-  items     Item[]
+  id         String       @id @default(uuid())
+  email      String       @unique @db.VarChar(254)
+  name       String       @db.VarChar(50)
+  password   String       @db.VarChar(254)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  homes      UserHome[]
+  rooms      UserRoom[]
+  items      UserItem[]
+  HomeInvite HomeInvite[]
 }
 
 model Home {
-  id         String     @id @default(uuid())
-  name       String
-  users      User[]     @relation("UserHomes")
+  id         String       @id @default(uuid())
+  name       String       @db.VarChar(100)
+  address    String       @db.VarChar(254)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  users      UserHome[]
+  rooms      Room[]
   items      Item[]
+  HomeInvite HomeInvite[]
+}
+
+model Room {
+  id        String     @id @default(uuid())
+  name      String     @db.VarChar(100)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  users     UserRoom[]
+  home      Home       @relation(fields: [homeId], references: [id])
+  homeId    String
+  items     Item[]
 }
 
 model Item {
-  id           String    @id @default(uuid())
-  name         String
-  description  String?
-  purchaseDate DateTime?
-  price        Float?
-  warranty     Int?
-  imageUrl     String?
-  homeId       String
-  home         Home      @relation(fields: [homeId], references: [id])
-  ownerId      String
-  owner        User      @relation(fields: [ownerId], references: [id])
+  id             String     @id @default(uuid())
+  public         Boolean    @default(false)
+  name           String     @db.VarChar(200)
+  description    String?    @db.VarChar(2000)
+  purchaseDate   DateTime?
+  price          Float?
+  hasWarranty    Boolean?
+  warrantyType   String?    @db.VarChar(50)
+  warrantyLength Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  users          UserItem[]
+  rooms          Room[]
+  medias         Media[]
+  Home           Home?      @relation(fields: [homeId], references: [id])
+  homeId         String?
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  url       String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     Item[]
+}
+
+model UserHome {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  home      Home     @relation(fields: [homeId], references: [id])
+  homeId    String
+  admin     Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, homeId])
+}
+
+model UserRoom {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    String
+  admin     Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, roomId])
+}
+
+model UserItem {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  itemId    String
+  admin     Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, itemId])
+}
+
+model HomeInvite {
+  id        String    @id @default(uuid())
+  code      String    @unique @db.VarChar(50)
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  home      Home      @relation(fields: [homeId], references: [id])
+  homeId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+
+  @@unique([userId, homeId])
 }
