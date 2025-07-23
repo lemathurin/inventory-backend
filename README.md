@@ -1,3 +1,4 @@
+
 # Home Inventory App – Backend
 
 Users can sign up, create homes and rooms, add items with details like warranty and price, and invite others to collaborate on shared homes. The backend has full CRUD support for each user, home, room, and item. Middlewares ensure that the user is authentified and authorized to permorm every CRUD operation.
@@ -65,9 +66,6 @@ npm run dev
 
 ```bash
 # Build and start the production server
-npm run build
-npm start
-```
 
 ## Docker
 
