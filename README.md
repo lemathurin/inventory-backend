@@ -1,5 +1,6 @@
-
 # Home Inventory App – Backend
+
+<img width="1136" height="745" alt="A screenshot of the app's dashboard, on the left showing a sidebar with the home's name, a list of rooms, and the user's name. On the right, a list of items with their name, owner, price, and location visible." src="https://github.com/user-attachments/assets/13573f7d-44d2-4778-9913-a0ae1be59a9e" />
 
 Users can sign up, create homes and rooms, add items with details like warranty and price, and invite others to collaborate on shared homes. The backend has full CRUD support for each user, home, room, and item. Middlewares ensure that the user is authentified and authorized to permorm every CRUD operation.
 
@@ -66,6 +67,9 @@ npm run dev
 
 ```bash
 # Build and start the production server
+npm run build
+npm start
+```
 
 ## Docker
 
